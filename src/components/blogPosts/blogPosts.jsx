@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllPosts, fetchCountOfPosts } from "../../api";
+import { fetchCountOfPosts } from "../../api";
+import usePrevious from "../../customHooks/usePrevious";
 
 import BlogPostsItem from "./blogPostsItem/blogPostsItem";
 
 import "./blogPosts.scss";
 
 const BlogPosts = () => {
-    let [count, setCount] = useState("3");
+    let [count, setCount] = useState(3);
     let [startIndex, setStartIndex] = useState(0);
     let [content, setContent] = useState([]);
     let [ended, setEnded] = useState(false);
+    let [loading, setLoading] = useState(false);
 
     let handleSelectChange = ({ target }) => {
         setStartIndex(0);
@@ -17,21 +19,30 @@ const BlogPosts = () => {
     };
 
     let handleMoreButton = () => {
-        const fetched = fetchCountOfPosts(startIndex, startIndex + +count);
-        setContent((prevContent) => {
-            return [...prevContent, ...fetched.content];
-        });
-        setEnded(fetched.ended);
+        setLoading(true);
+        fetchCountOfPosts(startIndex, startIndex + count)
+            .then(({ content, ended }) => {
+                setContent((prevContent) => {
+                    return [...prevContent, ...content];
+                });
+                setEnded(ended);
+            })
+            .then(() => setLoading(false));
     };
 
+    let previousCount = usePrevious(count);
+
     useEffect(() => {
-        if (count === "all") {
-            setContent(fetchAllPosts());
-            setEnded(true);
-        } else {
-            const fetched = fetchCountOfPosts(startIndex, startIndex + +count);
-            setContent(fetched.content);
-            setEnded(fetched.ended);
+        if (!previousCount || previousCount < count) {
+            setLoading(true);
+            fetchCountOfPosts(startIndex, startIndex + count)
+                .then(({ content, ended }) => {
+                    setContent(content);
+                    setEnded(ended);
+                })
+                .then(() => setLoading(false));
+        } else if (previousCount > count) {
+            setContent((prevContent) => [...prevContent].slice(0, count));
         }
     }, [count]);
 
@@ -47,16 +58,17 @@ const BlogPosts = () => {
                 value={count}
                 onChange={handleSelectChange}
             >
-                <option value="3">По 3 статьи</option>
-                <option value="6">По 6 статей</option>
-                <option value="all">Все сразу</option>
+                <option value={3}>По 3 статьи</option>
+                <option value={6}>По 6 статей</option>
+                <option value={20}>По 20 статей</option>
             </select>
             <div className="blog__posts">
                 {content.map(({ id }) => {
                     return <BlogPostsItem content={content} id={id} key={id} />;
                 })}
             </div>
-            {!ended ? (
+            {loading ? <h1>Loading</h1> : null}
+            {!ended && !loading ? (
                 <button className="blog__more" onClick={handleMoreButton}>
                     Загрузить еще
                 </button>

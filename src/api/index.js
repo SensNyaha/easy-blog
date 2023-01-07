@@ -10,14 +10,21 @@ const blogPosts = [
 ]
 
 export const fetchAllPosts = () => {
-    return blogPosts
+    return new Promise(resolve => {
+        setTimeout(()=>resolve(blogPosts), 1000)
+    })
 }
 export const fetchPost = (postId) => {
     return blogPosts.find(post=> post.id === postId)
 }
 export const fetchCountOfPosts = (startIndex, end) => {
-    const ended = end >= blogPosts.length-1
-    return {content: blogPosts.slice(startIndex, end), ended}
+    return new Promise(resolve => {
+        setTimeout(()=>{
+            const ended = end >= blogPosts.length-1
+            resolve({content: blogPosts.slice(startIndex, end), ended})}
+            , 1000)
+    })
+
 }
 
 
