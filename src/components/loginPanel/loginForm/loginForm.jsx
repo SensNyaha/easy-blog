@@ -1,36 +1,96 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { isAuthOK } from "../../../api";
+import Sending from "../../sending/sending";
 
 import "./loginForm.scss";
 
+let types = {
+    signin: {
+        title: "Вход",
+        linkToReg: true,
+    },
+    signup: {
+        title: "Регистрация",
+        checkboxAdmin: true,
+    },
+};
+
 const LoginForm = ({ type }) => {
-    let [admin, setAdmin] = useState(false);
+    let [formContent, setFormContent] = useState({
+        login: "",
+        password: "",
+        admin: false,
+    });
+    let [authStatus, setAuthStatus] = useState({});
+    let [sending, setSending] = useState(false);
+
+    let navigate = useNavigate();
+
+    let loginRef = useRef();
+    let passwordRef = useRef();
+
     const handleCheckboxChange = () => {
-        setAdmin((prev) => !prev);
+        setFormContent((prevState) => ({
+            ...prevState,
+            admin: !prevState.admin,
+        }));
     };
-    let types = {
-        signin: {
-            title: "Вход",
-            linkToReg: true,
-        },
-        signup: {
-            title: "Регистрация",
-            checkboxAdmin: true,
-        },
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const auth = {
+            login: loginRef.current.value,
+            password: passwordRef.current.value,
+        };
+        setSending(true);
+
+        if (type === "signin") {
+            isAuthOK(auth)
+                .then((res) => {
+                    setAuthStatus(res);
+                })
+                .catch((res) => {
+                    setAuthStatus(res);
+                })
+                .finally(() => setSending(false));
+        }
     };
+
+    useEffect(() => {
+        if (authStatus.verified) {
+            navigate(`/user/${authStatus.code}`);
+        }
+    }, [authStatus]);
+
     return (
         <>
-            <form className="login__form">
+            <form className="login__form" onSubmit={handleSubmit}>
                 <h5 className="login__title">{types[type].title}</h5>
                 <input
                     type="text"
                     className="login__input"
                     placeholder="Логин"
+                    onChange={({ target }) =>
+                        setFormContent((prevContent) => ({
+                            ...prevContent,
+                            login: target.value,
+                        }))
+                    }
+                    ref={loginRef}
+                    required
                 />
                 <input
                     type="password"
                     className="login__input"
                     placeholder="Пароль"
+                    onChange={({ target }) =>
+                        setFormContent((prevContent) => ({
+                            ...prevContent,
+                            password: target.value,
+                        }))
+                    }
+                    ref={passwordRef}
+                    required
                 />
                 <input type="submit" className="login__submit" />
                 {types[type].linkToReg ? (
@@ -46,7 +106,7 @@ const LoginForm = ({ type }) => {
                             type="checkbox"
                             className="login__checkbox"
                             id="login__checkbox"
-                            checked={admin}
+                            checked={formContent.admin}
                             onChange={handleCheckboxChange}
                         />
                         <label
@@ -55,7 +115,7 @@ const LoginForm = ({ type }) => {
                         >
                             Вы админ?
                         </label>
-                        {admin ? (
+                        {formContent.admin ? (
                             <input
                                 type="text"
                                 className="login__input"
@@ -64,6 +124,7 @@ const LoginForm = ({ type }) => {
                         ) : null}
                     </div>
                 ) : null}
+                {sending ? <Sending /> : null}
             </form>
         </>
     );

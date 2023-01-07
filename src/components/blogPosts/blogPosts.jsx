@@ -39,7 +39,7 @@ const BlogPosts = () => {
         if (content.length > maxLoadedPosts) {
             setMaxLoadedPosts(content.length);
         }
-        if (maxLoadedPosts > content.length) {
+        if (maxLoadedPosts > content.length - 1) {
             setEnded(false);
         }
     }, [content]);
