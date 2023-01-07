@@ -7,9 +7,12 @@ import "./blogHeaderSign.scss";
 const BlogHeaderSign = () => {
     return (
         <div className="blog__header-sign">
-            <BlogHeaderSignButton to="/signup" text={"Вход"} />
+            <BlogHeaderSignButton to="/login-panel" text={"Вход"} />
             /
-            <BlogHeaderSignButton to="/signin" text={"Регистрация"} />
+            <BlogHeaderSignButton
+                to="/login-panel/signup"
+                text={"Регистрация"}
+            />
         </div>
     );
 };

@@ -5,9 +5,10 @@ import api from "../../api/index";
 
 import BlogHeader from "../blogHeader/blogHeader";
 import BlogContent from "../blogContent/blogContent";
+import LoginPanel from "../loginPanel/loginPanel";
 
 const App = () => {
-    let [blogPosts, setBlogPosts] = useState(api());
+    let [blogPosts] = useState(api());
     return (
         <>
             <BlogHeader />
@@ -18,6 +19,7 @@ const App = () => {
                         <BlogContent page={"Статьи"} content={blogPosts} />
                     }
                 />
+                <Route path="login-panel/:type?" element={<LoginPanel />} />
                 <Route path="" element={<Navigate to="posts" />} />
             </Routes>
         </>
