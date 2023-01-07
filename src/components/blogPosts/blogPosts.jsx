@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchCountOfPosts } from "../../api";
 import usePrevious from "../../customHooks/usePrevious";
+import Loading from "../loading/loading";
 
 import BlogPostsItem from "./blogPostsItem/blogPostsItem";
 
@@ -38,13 +39,13 @@ const BlogPosts = () => {
         if (content.length > maxLoadedPosts) {
             setMaxLoadedPosts(content.length);
         }
-        if (maxLoadedPosts < content.length) {
+        if (maxLoadedPosts > content.length) {
             setEnded(false);
         }
     }, [content]);
 
     useEffect(() => {
-        if (!previousCount || previousCount < count) {
+        if ((!previousCount || previousCount < count) && !ended) {
             setLoading(true);
             fetchCountOfPosts(startIndex, startIndex + count)
                 .then(({ content, ended }) => {
@@ -74,7 +75,7 @@ const BlogPosts = () => {
                     return <BlogPostsItem content={content} id={id} key={id} />;
                 })}
             </div>
-            {loading ? <h1>Loading</h1> : null}
+            {loading ? <Loading /> : null}
             {!ended && !loading ? (
                 <button className="blog__more" onClick={handleMoreButton}>
                     Загрузить еще
