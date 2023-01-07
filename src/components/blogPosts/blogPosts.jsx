@@ -12,10 +12,11 @@ const BlogPosts = () => {
     let [content, setContent] = useState([]);
     let [ended, setEnded] = useState(false);
     let [loading, setLoading] = useState(false);
+    let [maxLoadedPosts, setMaxLoadedPosts] = useState(0);
 
     let handleSelectChange = ({ target }) => {
         setStartIndex(0);
-        setCount(target.value);
+        setCount(+target.value);
     };
 
     let handleMoreButton = () => {
@@ -33,6 +34,16 @@ const BlogPosts = () => {
     let previousCount = usePrevious(count);
 
     useEffect(() => {
+        setStartIndex(content.length);
+        if (content.length > maxLoadedPosts) {
+            setMaxLoadedPosts(content.length);
+        }
+        if (maxLoadedPosts < content.length) {
+            setEnded(false);
+        }
+    }, [content]);
+
+    useEffect(() => {
         if (!previousCount || previousCount < count) {
             setLoading(true);
             fetchCountOfPosts(startIndex, startIndex + count)
@@ -45,10 +56,6 @@ const BlogPosts = () => {
             setContent((prevContent) => [...prevContent].slice(0, count));
         }
     }, [count]);
-
-    useEffect(() => {
-        setStartIndex(content.length);
-    }, [content]);
 
     return (
         <>
