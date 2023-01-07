@@ -4,3 +4,20 @@
     grid-template-columns: 1fr 1fr 1fr;
     gap: 30px;
 }
+.blog__select {
+    display: block;
+    margin-left: auto;
+}
+.blog__more {
+    display: block;
+    margin: 20px auto;
+
+    padding: 10px 20px;
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #aaa;
+    }
+}
