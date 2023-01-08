@@ -1,5 +1,5 @@
 .login{
-&__form {
+    &__form {
         display: flex;
         flex-direction: column;
         gap: 30px;
@@ -43,5 +43,14 @@
             transform: translate(2px, 2px);
             
         }
+    }
+    &__error {
+        font-weight: 500;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        color: red
+    }
+    &__info {
+        font-size: 12px;
+        color:cornflowerblue
     }
 }

@@ -1,3 +1,5 @@
+var randomstring = require('randomstring');
+
 const blogPosts = [
     {id: 1, title: 'Возможна ли жизнь на Марсе?', description: 'Аппараты, которые работают на Марсе, позволяют познакомиться с планетой и подготовить наше понимание о том, чего стоит ждать. От этого во многом зависит успех первых людей, которые на эту планету ступят. Я думаю, они туда обязательно ступят. Другой вопрос, что это произойдет очень нескоро и, конечно же, эти шажки будут очень робкие, сначала — на уровне прилететь-улететь.\nПервый пилотируемый полет на Марс — это вопрос десятилетий. Основная проблема — радиация. Пока мы не знаем, что с ней делать на пути туда, обратно и как нам еще там побыть — хотя бы неделю — и долететь обратно живыми.\nСегодня мы делаем Curiosity по пять-семь лет — это всего лишь одна тонна. Оборудование, необходимое человеку на Марсе, весит уже несколько тонн. Сколько времени и денег на это надо потратить? В ближайшее десятилетие нужно хотя бы на уровне теории решить технологические проблемы, которые нам мешают, — это радиация, масса и др. А после того, как мы их решим в теории, мы будем их разрабатывать еще столько же.\n\nПрочитать более можно по адресу: https://naukatv.ru/articles/vopros_nauki_est_li_zhizn_na_marse', thumbnail: 'https://naukatv.ru/upload/resize/webp/bestfit/1920/1080/38/3833f4f3dc525a745c364a0008fa459a20ebfda1.jpg/optimized.webp'},
     {id: 2, title: 'Если бы динозавры не вымерли — что тогда?', description: '66 млн лет назад в Землю врезался астероид. Последовал взрыв силой 10 миллиардов атомных бомб, который изменил ход эволюции. Небо потемнело, растения перестали фотосинтезировать. Погибли сначала растения, затем животные, которые ими питались. Пищевая цепочка разрушилась. Исчезло более 75% всех видов. Когда пыль осела, все динозавры, кроме горстки прародителей птиц, вымерли.\nЭто катастрофическое событие сделало возможной человеческую эволюцию. Выжившие млекопитающие вскоре стали процветать, включая маленьких предков приматов, которые эволюционировали в нас.\nОбратите внимание на размеры динозавров. Начиная с юрского периода, динозавры-зауроподы (бронтозавры и их родственники) превратились в 30-50-тонных гигантов до 30 метров в длину — в десять раз больше веса слона и длиннее синего кита. Это произошло в нескольких группах, включая Diplodocidae, Brachiosauridae, Turiasauridae, Mamenchisauridae и Titanosauria.\n\nПрочитать более можно по адресу: https://naukatv.ru/articles/chto_bylo_by_esli_by_dinozavry_ne_vymerli', thumbnail: 'https://naukatv.ru/upload/resize/webp/bestfit/1920/1080/64/64adda943765b9757c490dcbad91bced2b08692f.jpg/optimized.webp'},
@@ -47,16 +49,47 @@ const auth = {
         code: 'J3orrRKkU0jinEHz'
     }
 }
+const verifyAdminCode = (code) => code === 'AqoTIzKurxJi';
+
 
 export const isAuthOK = ({login, password}) => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if (auth[login] && auth[login].password === password) {
-                resolve({verified: true, isAdmin: auth[login].isAdmin, code: auth[login].code}) 
+        if (auth[login] && auth[login].password === password) {
+            resolve({verified: true, isAdmin: auth[login].isAdmin, code: auth[login].code}) 
         }
         else {
-            reject({verified: false})
+            reject({verified: false, reason: 'Пользователя с такой комбинацией логина и пароля не обнаружено'})
         }
+        }, 2000)
+    })
+}
+
+export const isRegOK = ({login, password, isAdmin, adminCode}) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(()=>{
+            if (!Object.keys(auth).includes(login)) {
+                if (password.length >= 4) {
+                    if (isAdmin) {
+                        if (verifyAdminCode(adminCode)) {
+                            resolve({registered: true, isAdmin: true})
+                        }
+                        else {
+                            reject({registered: false, reason: 'Одноразовый админ-пароль введен неверно'})
+                        }
+                    }
+                    else {
+                        auth[login] = {password, isAdmin, code: randomstring.generate(16)};
+                        resolve({registered: true, isAdmin: false})
+                    }
+                }
+                else {
+                    reject({registered: false, reason: 'Длина пароля должна быть более 3 символов'})
+                }
+            }
+            else {
+                reject({registered: false, reason: 'Пользователь с таким именем уже существует'})
+            }
         }, 2000)
     })
 }
