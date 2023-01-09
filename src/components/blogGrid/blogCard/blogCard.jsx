@@ -5,8 +5,8 @@ import "./blogCard.scss";
 const BlogCard = ({ id, title, thumbnail, category, bigStyles }) => {
     let bigPositions = {};
     if (bigStyles) {
-        bigPositions["grid-column"] = bigStyles.col;
-        bigPositions["grid-row"] = bigStyles.row;
+        bigPositions["gridColumn"] = bigStyles.col;
+        bigPositions["gridRow"] = bigStyles.row;
     }
 
     let categoryClass = `blog-card__category `;
@@ -52,7 +52,7 @@ const BlogCard = ({ id, title, thumbnail, category, bigStyles }) => {
     return (
         <div
             className={`blog-card${
-                bigPositions["grid-column"] && bigPositions["grid-row"]
+                bigPositions["gridColumn"] && bigPositions["gridRow"]
                     ? " blog-card--big"
                     : ""
             }`}

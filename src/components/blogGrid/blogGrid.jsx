@@ -3,14 +3,22 @@ import getPosts from "../../services/getPosts";
 import BigLoading from "../bigLoading/bigLoading";
 import BlogCard from "./blogCard/blogCard";
 
+import usePrevious from "../../customHooks/usePrevious";
+
 import "./blogGrid.scss";
 import SelectCount from "./selectCount/selectCount";
 
 const BlogGrid = () => {
     let [posts, setPosts] = useState([]);
-    let [countOfPosts, setCountOfPosts] = useState(9);
+    let [countOfPosts, setCountOfPosts] = useState("9");
     let [loading, setLoading] = useState(false);
     let [error, setError] = useState(false);
+
+    let previousCount = usePrevious(countOfPosts);
+    //Реализовать реакцию интерфейса на смену числа выводимых элементов
+    //Подгружать элементы, если число элементов от сервера больше показываемого числа элементов
+    //Не подгружать элементы, если сейчас выведено элементов больше, чем выбирается и ставится в countOfPosts, но все равно изменить countOfPosts и подгружать элементы далее от кнопки именно в таком количестве
+    //Реализлвать кнопку подгрузки элементов согласно countOfPosts
 
     let [bigPositions, setBigPositions] = useState();
     useEffect(() => {
@@ -48,12 +56,16 @@ const BlogGrid = () => {
     useEffect(() => {
         setLoading(true);
         setTimeout(() => {
-            getPosts()
+            getPosts(posts.length, countOfPosts)
                 .then((res) => setPosts(res))
                 .then(() => setLoading(false))
                 .catch((err) => console.log(err));
         }, 0);
     }, []);
+
+    const handleChangeCountPosts = (count) => {
+        setCountOfPosts(count);
+    };
 
     if (loading) {
         return <BigLoading />;
@@ -61,7 +73,10 @@ const BlogGrid = () => {
 
     return (
         <>
-            <SelectCount count={countOfPosts} />
+            <SelectCount
+                count={countOfPosts}
+                onChange={handleChangeCountPosts}
+            />
             <div className="blog-grid">
                 {[...posts].map((post, i) => {
                     return (
