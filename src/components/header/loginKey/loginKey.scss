@@ -1,0 +1,16 @@
+.login-key {
+    width: 20px;
+    height: 20px;
+
+
+    padding: 9px;
+    border-radius: 100%;
+    background-color: #ddd;
+
+    cursor: pointer;
+    transition: all 0.5s;
+
+    &:hover {
+        background-color: #eee;
+    }
+}

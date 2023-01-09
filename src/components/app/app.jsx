@@ -1,26 +1,15 @@
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-
-import BlogHeader from "../blogHeader/blogHeader";
-import BlogContent from "../blogContent/blogContent";
-import LoginPanel from "../loginPanel/loginPanel";
-import ScrollToTop from "../scrollWrapper/scrollWrapper";
-import UserPage from "../userPage/userPage";
+import React, { useState } from "react";
+import BlogGrid from "../blogGrid/blogGrid";
+import Header from "../header/header";
 
 const App = () => {
+    const [logged, setLogged] = useState(false);
+
     return (
-        <ScrollToTop>
-            <BlogHeader />
-            <Routes>
-                <Route
-                    path="posts/:postId?"
-                    element={<BlogContent page={"Статьи"} />}
-                />
-                <Route path="login-panel/:type?" element={<LoginPanel />} />
-                <Route path="" element={<Navigate to="posts" />} />
-                <Route path="user/:userCode" element={<UserPage />} />
-            </Routes>
-        </ScrollToTop>
+        <>
+            <Header logged={logged} />
+            <BlogGrid />
+        </>
     );
 };
 
