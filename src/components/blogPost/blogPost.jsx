@@ -1,20 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import getPost from "../../services/getPost";
+import getAllPosts from "../../services/getAllPosts";
 import parseBlogText from "../../services/parseBlogText";
 
 import BigLoading from "../bigLoading/bigLoading";
 
 import "./blogPost.scss";
+import { Link } from "react-router-dom";
 
 const BlogPost = () => {
     const { postId } = useParams();
+    const navigate = useNavigate();
+
+    if (postId === undefined) {
+        navigate("/");
+    }
 
     const [loading, setLoading] = useState(true);
     const [content, setContent] = useState(null);
     const [wrongId, setWrongId] = useState(false);
     const [error, setError] = useState(false);
+    const [nextprev, setNextprev] = useState({ prev: null, next: null });
 
     useEffect(() => {
         setLoading(true);
@@ -33,15 +41,60 @@ const BlogPost = () => {
                 .then(() => setLoading(false))
                 .catch(() => setError(true));
         }, 1000);
-    }, []);
+    }, [postId]);
+    useEffect(() => {
+        getAllPosts().then((res) => {
+            if (Array.isArray(res)) {
+                let index = res.findLastIndex((elem) => +elem.id === +postId);
+                if (index !== -1) {
+                    setNextprev({
+                        prev: res[index - 1]?.id,
+                        next: res[index + 1]?.id,
+                    });
+                }
+            }
+        });
+    }, [postId]);
 
-    //если после фетчинга по айди поста пришел undefined показать заглушку 404
+    //если после фетчинга по айди поста пришел [] показать заглушку 404
 
     if (error) {
         if (wrongId) {
-            return <h1>Несуществующий айди</h1>;
+            return (
+                <div className="blog-post">
+                    <h1
+                        className="blog-post__error"
+                        style={{ textAlign: "center" }}
+                    >
+                        Несуществующий пост
+                    </h1>
+                    <Link
+                        style={{ display: "block", margin: "30px auto" }}
+                        className="blog-post__link"
+                        to="/"
+                    >
+                        На главную
+                    </Link>
+                </div>
+            );
         } else {
-            return <h1>Произошла ошибка при получении данных с сервера</h1>;
+            return (
+                <div className="blog-post">
+                    <h1
+                        className="blog-post__error"
+                        style={{ textAlign: "center" }}
+                    >
+                        Произошла ошибка при получении данных с сервера
+                    </h1>
+                    <Link
+                        style={{ display: "block", margin: "30px auto" }}
+                        className="blog-post__link"
+                        to="/"
+                    >
+                        На главную
+                    </Link>
+                </div>
+            );
         }
     }
 
@@ -50,7 +103,6 @@ const BlogPost = () => {
     }
 
     let categoryClass = `blog-post__category `;
-
     switch (content.category) {
         case "Внеземное": {
             categoryClass += "blog-post__category--cosmo";
@@ -106,6 +158,41 @@ const BlogPost = () => {
 
             <div className="blog-post__content">
                 {parseBlogText(content.text)}
+            </div>
+
+            <div className="blog-post__links">
+                {nextprev.prev ? (
+                    <Link
+                        className="blog-post__link"
+                        relative="path"
+                        to={`../${nextprev.prev}`}
+                    >
+                        <svg viewBox="0 0 32 32">
+                            <g data-name="Layer 2" id="Layer_2">
+                                <path d="M20,25a1,1,0,0,1-.71-.29l-8-8a1,1,0,0,1,0-1.42l8-8a1,1,0,1,1,1.42,1.42L13.41,16l7.3,7.29a1,1,0,0,1,0,1.42A1,1,0,0,1,20,25Z" />
+                            </g>
+                        </svg>
+                        Предыдущая статья
+                    </Link>
+                ) : (
+                    <Link className="blog-post__link" to="/">
+                        На главную
+                    </Link>
+                )}
+                {nextprev.next ? (
+                    <Link
+                        className="blog-post__link"
+                        to={`../${nextprev.next}`}
+                        relative="path"
+                    >
+                        Следующая статья
+                        <svg viewBox="0 0 32 32">
+                            <g data-name="Layer 2" id="Layer_2">
+                                <path d="M12,25a1,1,0,0,1-.71-.29,1,1,0,0,1,0-1.42L18.59,16l-7.3-7.29a1,1,0,1,1,1.42-1.42l8,8a1,1,0,0,1,0,1.42l-8,8A1,1,0,0,1,12,25Z" />
+                            </g>
+                        </svg>
+                    </Link>
+                ) : null}
             </div>
         </div>
     );

@@ -16,7 +16,7 @@ const App = () => {
             <Container>
                 <Header logged={logged} />
                 <Routes>
-                    <Route path="posts/:postId" element={<BlogPost />} />
+                    <Route path="posts/:postId?" element={<BlogPost />} />
                     <Route path="/" element={<BlogGrid />} />
                 </Routes>
             </Container>

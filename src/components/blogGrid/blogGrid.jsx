@@ -69,7 +69,7 @@ const BlogGrid = () => {
                 setTimeout(() => {
                     getPosts(posts.length, countOfPosts)
                         .then((res) => {
-                            if (res.length < countOfPosts) {
+                            if (res.length + posts.length < countOfPosts) {
                                 setEnded(true);
                             }
                             return res;

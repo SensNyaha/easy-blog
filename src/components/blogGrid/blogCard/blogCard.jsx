@@ -21,6 +21,10 @@ const BlogCard = ({ id, title, thumbnail, category, bigStyles }) => {
             categoryClass += "blog-card__category--before";
             break;
         }
+        case "Раскопки": {
+            categoryClass += "blog-card__category--before";
+            break;
+        }
         case "Кибервсё": {
             categoryClass += "blog-card__category--cyber";
             break;
@@ -45,6 +49,7 @@ const BlogCard = ({ id, title, thumbnail, category, bigStyles }) => {
             categoryClass += "blog-card__category--inno";
             break;
         }
+
         default: {
             categoryClass += "blog-card__category--undef";
         }
