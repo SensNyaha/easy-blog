@@ -7,6 +7,7 @@ import usePrevious from "../../customHooks/usePrevious";
 
 import "./blogGrid.scss";
 import SelectCount from "./selectCount/selectCount";
+import LoadMore from "./loadMore/loadMore";
 
 const BlogGrid = () => {
     let [posts, setPosts] = useState([]);
@@ -15,6 +16,7 @@ const BlogGrid = () => {
     let [error, setError] = useState(false);
 
     let previousCount = usePrevious(countOfPosts);
+
     //Реализовать реакцию интерфейса на смену числа выводимых элементов
     //Подгружать элементы, если число элементов от сервера больше показываемого числа элементов
     //Не подгружать элементы, если сейчас выведено элементов больше, чем выбирается и ставится в countOfPosts, но все равно изменить countOfPosts и подгружать элементы далее от кнопки именно в таком количестве
@@ -22,35 +24,35 @@ const BlogGrid = () => {
 
     let [bigPositions, setBigPositions] = useState();
     useEffect(() => {
+        let protoBigPositions = [];
         for (let i = 0; i < posts.length; i = i + 11) {
             if (i === 0) {
-                setBigPositions([{ col: "1/3", row: "1/3" }]);
+                protoBigPositions.push({ col: "1/3", row: "1/3" });
             } else {
-                if (bigPositions && bigPositions[bigPositions.length - 1]) {
-                    let newPositionRow = bigPositions[
-                        bigPositions.length - 1
-                    ].row
-                        .split("/")
-                        .map((point) => +point + 3)
-                        .join("/");
-                    let newPositionCol;
+                let newPositionRow = protoBigPositions[
+                    protoBigPositions.length - 1
+                ].row
+                    .split("/")
+                    .map((point) => +point + 3)
+                    .join("/");
+                let newPositionCol;
 
-                    let divider = (i + 1) / 12;
+                let divider = (i + 1) / 12;
 
-                    if (divider % 2 === 1) {
-                        newPositionCol = "3/5";
-                    } else {
-                        newPositionCol = "1/3";
-                    }
-                    let newBigPositions = {
-                        col: newPositionCol,
-                        row: newPositionRow,
-                    };
-
-                    setBigPositions((prevArr) => [...prevArr, newBigPositions]);
+                if (divider % 2 === 1) {
+                    newPositionCol = "3/5";
+                } else {
+                    newPositionCol = "1/3";
                 }
+                let newBigPositions = {
+                    col: newPositionCol,
+                    row: newPositionRow,
+                };
+
+                protoBigPositions.push(newBigPositions);
             }
         }
+        setBigPositions(protoBigPositions);
     }, [posts]);
 
     useEffect(() => {
@@ -60,19 +62,40 @@ const BlogGrid = () => {
                 .then((res) => setPosts(res))
                 .then(() => setLoading(false))
                 .catch((err) => console.log(err));
-        }, 0);
+        }, 1000);
     }, []);
+
+    useEffect(() => {
+        if (previousCount) {
+            if (+countOfPosts > previousCount && posts.length < countOfPosts) {
+                setLoading(true);
+                setTimeout(() => {
+                    getPosts(posts.length, countOfPosts)
+                        .then((res) => setPosts((prev) => [...prev, ...res]))
+                        .then(() => setLoading(false))
+                        .catch((err) => console.log(err));
+                }, 1000);
+            }
+        }
+    }, [countOfPosts]);
 
     const handleChangeCountPosts = (count) => {
         setCountOfPosts(count);
     };
 
-    if (loading) {
-        return <BigLoading />;
-    }
+    const loadMorePosts = () => {
+        setLoading(true);
+        setTimeout(() => {
+            getPosts(posts.length, posts.length + +countOfPosts)
+                .then((res) => setPosts((prev) => [...prev, ...res]))
+                .then(() => setLoading(false))
+                .catch((err) => console.log(err));
+        }, 1000);
+    };
 
     return (
         <>
+            {loading ? <BigLoading /> : null}
             <SelectCount
                 count={countOfPosts}
                 onChange={handleChangeCountPosts}
@@ -86,7 +109,7 @@ const BlogGrid = () => {
                             bigStyles={
                                 i === 0 && bigPositions
                                     ? bigPositions[i]
-                                    : i % 11 === 0 && bigPositions
+                                    : (i + 1) % 12 === 0 && bigPositions
                                     ? bigPositions[(i + 1) / 12]
                                     : null
                             }
@@ -94,6 +117,7 @@ const BlogGrid = () => {
                     );
                 })}
             </div>
+            {posts.length ? <LoadMore onClick={loadMorePosts} /> : null}
         </>
     );
 };
