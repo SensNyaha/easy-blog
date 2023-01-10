@@ -1,7 +1,11 @@
-* {
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-}
+
 body {
     margin: 0;
-    padding: 10px;
+    padding: 0 10px;
+}
+
+a {
+      
+    text-decoration: none !important;
+    color: inherit;
 }

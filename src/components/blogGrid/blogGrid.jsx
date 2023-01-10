@@ -14,14 +14,11 @@ const BlogGrid = () => {
     let [countOfPosts, setCountOfPosts] = useState("9");
     let [loading, setLoading] = useState(false);
     let [error, setError] = useState(false);
+    let [ended, setEnded] = useState(false);
 
     let previousCount = usePrevious(countOfPosts);
 
-    //Реализовать реакцию интерфейса на смену числа выводимых элементов
-    //Подгружать элементы, если число элементов от сервера больше показываемого числа элементов
-    //Не подгружать элементы, если сейчас выведено элементов больше, чем выбирается и ставится в countOfPosts, но все равно изменить countOfPosts и подгружать элементы далее от кнопки именно в таком количестве
-    //Реализлвать кнопку подгрузки элементов согласно countOfPosts
-
+    ///Логика расположения больших элементов на сетке
     let [bigPositions, setBigPositions] = useState();
     useEffect(() => {
         let protoBigPositions = [];
@@ -71,6 +68,12 @@ const BlogGrid = () => {
                 setLoading(true);
                 setTimeout(() => {
                     getPosts(posts.length, countOfPosts)
+                        .then((res) => {
+                            if (res.length < countOfPosts) {
+                                setEnded(true);
+                            }
+                            return res;
+                        })
                         .then((res) => setPosts((prev) => [...prev, ...res]))
                         .then(() => setLoading(false))
                         .catch((err) => console.log(err));
@@ -87,6 +90,12 @@ const BlogGrid = () => {
         setLoading(true);
         setTimeout(() => {
             getPosts(posts.length, posts.length + +countOfPosts)
+                .then((res) => {
+                    if (res.length < countOfPosts) {
+                        setEnded(true);
+                    }
+                    return res;
+                })
                 .then((res) => setPosts((prev) => [...prev, ...res]))
                 .then(() => setLoading(false))
                 .catch((err) => console.log(err));
@@ -117,7 +126,9 @@ const BlogGrid = () => {
                     );
                 })}
             </div>
-            {posts.length ? <LoadMore onClick={loadMorePosts} /> : null}
+            {posts.length && !ended ? (
+                <LoadMore onClick={loadMorePosts} />
+            ) : null}
         </>
     );
 };

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import "./blogCard.scss";
 
@@ -58,9 +59,11 @@ const BlogCard = ({ id, title, thumbnail, category, bigStyles }) => {
             }`}
             style={bigPositions}
         >
-            <div className={categoryClass}>{category}</div>
-            <div className="blog-card__title">{title}</div>
-            <img src={thumbnail} alt="title" className="blog-card__bg" />
+            <Link className="blog-card__link" to={`posts/${id}`}>
+                <div className={categoryClass}>{category}</div>
+                <div className="blog-card__title">{title}</div>
+                <img src={thumbnail} alt="title" className="blog-card__bg" />
+            </Link>
         </div>
     );
 };
