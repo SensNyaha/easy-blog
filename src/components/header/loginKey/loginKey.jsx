@@ -1,10 +1,11 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import "./loginKey.scss";
 
 const LoginKey = () => {
     return (
-        <div className="login-key">
+        <Link to="/login" className="login-key">
             <svg
                 fill="#000000"
                 version="1.1"
@@ -32,7 +33,7 @@ const LoginKey = () => {
                     </g>
                 </g>
             </svg>
-        </div>
+        </Link>
     );
 };
 

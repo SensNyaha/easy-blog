@@ -9,7 +9,7 @@ import "./blogGrid.scss";
 import SelectCount from "./selectCount/selectCount";
 import LoadMore from "./loadMore/loadMore";
 
-const BlogGrid = () => {
+const BlogGrid = ({ onChangeLogged }) => {
     let [posts, setPosts] = useState([]);
     let [countOfPosts, setCountOfPosts] = useState("9");
     let [loading, setLoading] = useState(false);
