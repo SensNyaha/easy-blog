@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap');
+.me {
+    margin-bottom: 30px;
+
+    font-family: Montserrat, sans-serif;
+}
+
+.me__title {
+    margin-top: 25px;
+    margin-bottom: 0;
+
+    font-weight: 300;
+}
+.me__create {
+    margin-top: 25px;
+
+    display: block;
+    width: max-content;
+    margin-left: auto;
+
+    padding: 5px 10px;
+    border: 2px solid #333;
+    border-radius: 7px;
+
+    transition: all 0.5s;
+    &:hover {
+        background-color: #ddd;
+        border-color: #ddd;
+    }
+}

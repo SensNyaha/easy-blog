@@ -53,6 +53,10 @@ const BlogGrid = ({ onChangeLogged }) => {
     }, [posts]);
 
     useEffect(() => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+    }, []);
+    useEffect(() => {
         setLoading(true);
         setTimeout(() => {
             getPosts(posts.length, countOfPosts)

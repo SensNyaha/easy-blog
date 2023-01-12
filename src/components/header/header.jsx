@@ -9,7 +9,13 @@ const Header = ({ logged }) => {
     return (
         <div className="header">
             <Logo />
-            {logged ? <ExitKey /> : <LoginKey />}
+            {logged ? (
+                <>
+                    <ExitKey />
+                </>
+            ) : (
+                <LoginKey />
+            )}
         </div>
     );
 };

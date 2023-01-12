@@ -1,0 +1,41 @@
+.me__grid {
+    margin-top: 35px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 25px;
+}
+
+.me__post {
+    max-height: 150px;
+    padding: 10px;
+
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    &-title {
+        font-weight: 500;
+    }
+
+    &-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        z-index: -1;
+        filter: opacity(.5);
+    }
+
+    &:hover {
+        color: #fff;
+        .me__post-bg {
+            filter: brightness(.7) opacity(1);
+        }
+    }
+}

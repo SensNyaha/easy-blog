@@ -25,6 +25,10 @@ const BlogPost = () => {
     const [nextprev, setNextprev] = useState({ prev: null, next: null });
 
     useEffect(() => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+    }, []);
+    useEffect(() => {
         setLoading(true);
         setTimeout(() => {
             getPost(postId)
