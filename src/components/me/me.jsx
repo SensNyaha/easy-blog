@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import getPostsAuth from "../../services/getPostsAuth";
+import logout from "../../services/logout";
+import EditPost from "../editPost/editPost";
 
 import "./me.scss";
 import MeGrid from "./meGrid/meGrid";
@@ -32,15 +34,22 @@ const Me = () => {
             ).then(setContent);
         }
     }, [isAdmin]);
-    return (
-        <div className="me">
-            <h2 className="me__title">Привет, {user.email}, дорогой друг</h2>
-            <Link to="create" className="me__create">
-                Создать статью
-            </Link>
-            <MeGrid content={content} />
-        </div>
-    );
+    try {
+        return (
+            <div className="me">
+                <h2 className="me__title">
+                    Привет, {user.email}, дорогой друг
+                </h2>
+                <Link to="create" className="me__create">
+                    Создать статью
+                </Link>
+                <MeGrid content={content} />
+            </div>
+        );
+    } catch {
+        logout();
+        navigate("/login");
+    }
 };
 
 export default Me;

@@ -1,0 +1,84 @@
+.edit {
+    margin-top: 25px;
+    margin-bottom: 35px;
+    &__back {
+        margin-top: 5px;
+
+        display: block;
+        width: max-content;
+
+        padding: 5px 10px;
+        border: 2px solid #333;
+        border-radius: 7px;
+
+        transition: all 0.5s;
+        &:hover {
+            background-color: #ddd;
+            border-color: #ddd;
+        }
+    }
+
+    &__form {
+        margin-top: 30px;
+
+        font-family: Roboto, sans-serif;
+
+        &-block {
+            margin-top: 20px;
+            margin-bottom: 10px;
+
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+    }
+    &__input, &__textarea, &__select {
+        width: 600px;
+        padding: 7px;
+
+        font-family: Roboto, sans-serif;
+    }
+    &__thumbnail {
+        &-img {
+            width: 200px;
+        }
+    }
+    &__published, &__categories {
+        width: 200px;
+        text-align: center;
+    }
+    &__text {
+        height: 500px;
+    }
+
+    &__save {
+        display: block;
+        width: max-content;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: rgb(109, 238, 255);
+        border: 1px solid rgb(119, 119, 119);
+        border-top: none;
+        border-left: none;
+        border-radius: 5px;
+        box-shadow: 3px 3px 7px #000;
+        cursor: pointer;
+        &:hover {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+    }
+
+    &__success {
+        margin-top: 15px;
+        color:forestgreen;
+        text-align: center;
+    }
+    &__error {
+        margin-top: 15px;
+        color:crimson;
+        text-align: center;
+    }
+}

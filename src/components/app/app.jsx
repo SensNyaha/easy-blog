@@ -10,6 +10,7 @@ import BlogPost from "../blogPost/blogPost";
 import Login from "../login/login";
 import CheckAuth from "../checkAuth/checkAuth";
 import Me from "../me/me";
+import EditPost from "../editPost/editPost";
 
 const App = () => {
     const [logged, setLogged] = useState(false);
@@ -27,6 +28,7 @@ const App = () => {
                         <Route path="posts/:postId?" element={<BlogPost />} />
                         <Route path="login" element={<Login />} />
                         <Route path="me" element={<Me />} />
+                        <Route path="me/edit/:postId" element={<EditPost />} />
                         <Route path="/" element={<BlogGrid />} />
                     </Routes>
                 </CheckAuth>
