@@ -228,7 +228,7 @@ const EditPost = ({ toDo }) => {
                                 }
                             >
                                 {categories.map((cat) => (
-                                    <option key={cat.name} value={cat}>
+                                    <option key={cat.name} value={cat.name}>
                                         {cat.name}
                                     </option>
                                 ))}
