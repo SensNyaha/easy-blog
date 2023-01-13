@@ -18,24 +18,27 @@ const MeGrid = ({ content }) => {
     }
 
     return (
-        <div className="me__grid">
-            {content.map((item) => {
-                return (
-                    <Link
-                        to={`edit/${item.id}`}
-                        key={item.id}
-                        className="me__post"
-                    >
-                        <h4 className="me__post-title">{item.title}</h4>
-                        <img
-                            src={item.thumbnail}
-                            alt="thumnbail"
-                            className="me__post-bg"
-                        />
-                    </Link>
-                );
-            })}
-        </div>
+        <>
+            <div className="me__title">Твои посты</div>
+            <div className="me__grid">
+                {content.map((item) => {
+                    return (
+                        <Link
+                            to={`edit/${item.id}`}
+                            key={item.id}
+                            className="me__post"
+                        >
+                            <h4 className="me__post-title">{item.title}</h4>
+                            <img
+                                src={item.thumbnail}
+                                alt="thumnbail"
+                                className="me__post-bg"
+                            />
+                        </Link>
+                    );
+                })}
+            </div>
+        </>
     );
 };
 

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import getCategories from "../../services/getCategories";
 import getPostAuth from "../../services/getPostAuth";
 import logout from "../../services/logout";
+import postCategory from "../../services/postCategory";
 import postPostAuth from "../../services/postPostAuth";
 import putPostAuth from "../../services/putPostAuth";
 import BigLoading from "../bigLoading/bigLoading";
@@ -19,6 +20,12 @@ const EditPost = ({ toDo }) => {
     const [categories, setCategories] = useState(null);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(false);
+    const [addCategory, setAddCategory] = useState({
+        active: false,
+        name: "",
+        background: "#fff",
+        color: "#000",
+    });
 
     useEffect(() => {
         setUser(JSON.parse(localStorage.getItem("user")));
@@ -88,6 +95,28 @@ const EditPost = ({ toDo }) => {
                 }
             });
         }
+    };
+
+    const createNewCategory = (e) => {
+        const body = { ...addCategory };
+        delete body.active;
+        postCategory(body)
+            .then((res) => {
+                if (res.name) {
+                    setAddCategory({
+                        active: false,
+                        name: "",
+                        background: "#fff",
+                        color: "#000",
+                    });
+                    getCategories().then((res) => setCategories(res));
+                } else {
+                    e.target.parentElement.append(
+                        "Что-то пошло не так. Попробуйте позже."
+                    );
+                }
+            })
+            .catch(console.log);
     };
 
     try {
@@ -205,6 +234,80 @@ const EditPost = ({ toDo }) => {
                                 ))}
                             </select>
                         )}
+                        <div className="edit__categories-create">
+                            <div className="checkbox-wrapper">
+                                <input
+                                    type="checkbox"
+                                    className="edit__categories-checkbox"
+                                    id="edit__categories-checkbox"
+                                    checked={addCategory.active}
+                                    onChange={() => {
+                                        setAddCategory((prev) => ({
+                                            ...prev,
+                                            active: !prev.active,
+                                        }));
+                                    }}
+                                />
+                                <label htmlFor="edit__categories-checkbox">
+                                    Добавить свою категорию
+                                </label>
+                            </div>
+                            {addCategory.active ? (
+                                <div className="edit__categories-new">
+                                    <label htmlFor="edit__categories-name">
+                                        Название новой категории
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="edit__categories-name"
+                                        id="edit__categories-name"
+                                        value={addCategory.name}
+                                        onChange={(e) => {
+                                            setAddCategory((prev) => ({
+                                                ...prev,
+                                                name: e.target.value,
+                                            }));
+                                        }}
+                                    />
+                                    <label htmlFor="edit__categories-background">
+                                        Задний фон плашки
+                                    </label>
+                                    <input
+                                        type="color"
+                                        className="edit__categories-background"
+                                        id="edit__categories-background"
+                                        value={addCategory.background}
+                                        onChange={(e) => {
+                                            setAddCategory((prev) => ({
+                                                ...prev,
+                                                background: e.target.value,
+                                            }));
+                                        }}
+                                    />
+                                    <label htmlFor="edit__categories-color">
+                                        Цвет текста на плашке
+                                    </label>
+                                    <input
+                                        type="color"
+                                        className="edit__categories-color"
+                                        id="edit__categories-color"
+                                        value={addCategory.color}
+                                        onChange={(e) => {
+                                            setAddCategory((prev) => ({
+                                                ...prev,
+                                                color: e.target.value,
+                                            }));
+                                        }}
+                                    />
+                                    <button
+                                        onClick={createNewCategory}
+                                        className="edit__categories-send"
+                                    >
+                                        Сохранить новую категорию
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                     <div className="edit__form-block">
                         <label
