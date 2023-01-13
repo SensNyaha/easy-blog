@@ -1,5 +1,7 @@
-export default function putPost (postId, status, token, body) {
-    let port = status === 'admin' ? '660' : '600';
+import createPort from "./createPort";
+
+export default async function putPost (postId, email, token, body) {
+    let port = await createPort(email);
     return fetch(`http://localhost:3001/${port}/posts/${postId}`,
             {   
                 method: 'PUT',

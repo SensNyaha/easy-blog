@@ -18,13 +18,10 @@ const EditPost = () => {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(false);
 
-    const isAdmin =
-        JSON.parse(localStorage.getItem("user")).email === "admin@admin.admin";
-
     useEffect(() => {
         getPostAuth(
             postId,
-            isAdmin ? "admin" : "user",
+            JSON.parse(localStorage.getItem("user")).email,
             localStorage.getItem("accessToken")
         ).then((res) => setContent(res[0]));
 
@@ -38,7 +35,7 @@ const EditPost = () => {
     const handleSaveCorrectedPost = async () => {
         putPostAuth(
             content.id,
-            isAdmin ? "admin" : "user",
+            JSON.parse(localStorage.getItem("user")).email,
             localStorage.getItem("accessToken"),
             content
         ).then((res) => {

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import getPostsAuth from "../../services/getPostsAuth";
 import logout from "../../services/logout";
-import EditPost from "../editPost/editPost";
 
 import "./me.scss";
 import MeGrid from "./meGrid/meGrid";
@@ -11,7 +10,6 @@ const Me = () => {
     const navigate = useNavigate();
 
     const [user, setUser] = useState({});
-    const [isAdmin, setIsAdmin] = useState(false);
     const [content, setContent] = useState(null);
 
     useEffect(() => {
@@ -21,19 +19,12 @@ const Me = () => {
         setUser(JSON.parse(localStorage.getItem("user")));
     }, []);
     useEffect(() => {
-        if (user.email === "admin@admin.admin") {
-            setIsAdmin(true);
-        }
-    }, [user]);
-    useEffect(() => {
-        if (isAdmin) {
-            getPostsAuth(
-                "admin",
-                localStorage.getItem("accessToken"),
-                user.id
-            ).then(setContent);
-        }
-    }, [isAdmin]);
+        getPostsAuth(
+            JSON.parse(localStorage.getItem("user")).email,
+            localStorage.getItem("accessToken"),
+            user.id
+        ).then(setContent);
+    }, []);
     try {
         return (
             <div className="me">

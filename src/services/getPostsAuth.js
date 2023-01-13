@@ -1,6 +1,8 @@
-export default function getPostsAuth(status, token, userId) {
-    let port = status === 'admin' ? '660' : '600';
-    let endPath = status === 'admin' ? `` : `?userId=${userId}`;
+import createPort from "./createPort";
+
+export default async function getPostsAuth(email, token, userId) {
+    let port = await createPort(email)
+    let endPath = port === '660' ? `` : `?userId=${userId}`;
     return fetch(`http://localhost:3001/${port}/posts${endPath}`,
         {headers:
             {
