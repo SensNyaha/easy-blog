@@ -28,7 +28,14 @@ const App = () => {
                         <Route path="posts/:postId?" element={<BlogPost />} />
                         <Route path="login" element={<Login />} />
                         <Route path="me" element={<Me />} />
-                        <Route path="me/edit/:postId" element={<EditPost />} />
+                        <Route
+                            path="me/edit/:postId"
+                            element={<EditPost toDo="edit" />}
+                        />
+                        <Route
+                            path="me/create"
+                            element={<EditPost toDo="create" />}
+                        />
                         <Route path="/" element={<BlogGrid />} />
                     </Routes>
                 </CheckAuth>

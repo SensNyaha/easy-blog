@@ -2,16 +2,18 @@ import React, { useEffect, useState } from "react";
 import getPosts from "../../services/getPosts";
 import BigLoading from "../bigLoading/bigLoading";
 import BlogCard from "./blogCard/blogCard";
-
-import usePrevious from "../../customHooks/usePrevious";
-
-import "./blogGrid.scss";
 import SelectCount from "./selectCount/selectCount";
 import LoadMore from "./loadMore/loadMore";
 
-const BlogGrid = ({ onChangeLogged }) => {
+import usePrevious from "../../customHooks/usePrevious";
+import getCategories from "../../services/getCategories";
+
+import "./blogGrid.scss";
+
+const BlogGrid = () => {
     let [posts, setPosts] = useState([]);
     let [countOfPosts, setCountOfPosts] = useState("9");
+    const [categories, setCategories] = useState({});
     let [loading, setLoading] = useState(false);
     let [error, setError] = useState(false);
     let [ended, setEnded] = useState(false);
@@ -51,6 +53,10 @@ const BlogGrid = ({ onChangeLogged }) => {
         }
         setBigPositions(protoBigPositions);
     }, [posts]);
+
+    useEffect(() => {
+        getCategories().then((res) => setCategories(res));
+    }, []);
 
     useEffect(() => {
         localStorage.removeItem("accessToken");
@@ -119,6 +125,11 @@ const BlogGrid = ({ onChangeLogged }) => {
                         <BlogCard
                             key={post.id}
                             {...post}
+                            categoryStyles={{
+                                ...categories.find(
+                                    (cat) => cat.name === post.category
+                                ),
+                            }}
                             bigStyles={
                                 i === 0 && bigPositions
                                     ? bigPositions[i]

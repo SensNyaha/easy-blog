@@ -19,8 +19,9 @@ const Me = () => {
         setUser(JSON.parse(localStorage.getItem("user")));
     }, []);
     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user"));
         getPostsAuth(
-            JSON.parse(localStorage.getItem("user")).email,
+            user.email,
             localStorage.getItem("accessToken"),
             user.id
         ).then(setContent);

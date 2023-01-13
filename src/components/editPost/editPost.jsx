@@ -4,47 +4,90 @@ import { Link } from "react-router-dom";
 import getCategories from "../../services/getCategories";
 import getPostAuth from "../../services/getPostAuth";
 import logout from "../../services/logout";
+import postPostAuth from "../../services/postPostAuth";
 import putPostAuth from "../../services/putPostAuth";
 import BigLoading from "../bigLoading/bigLoading";
 
 import "./editPost.scss";
 
-const EditPost = () => {
+const EditPost = ({ toDo }) => {
     const { postId } = useParams();
     const navigate = useNavigate();
 
     const [content, setContent] = useState(null);
+    const [user, setUser] = useState(null);
     const [categories, setCategories] = useState(null);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        getPostAuth(
-            postId,
-            JSON.parse(localStorage.getItem("user")).email,
-            localStorage.getItem("accessToken")
-        ).then((res) => setContent(res[0]));
+        setUser(JSON.parse(localStorage.getItem("user")));
+
+        if (toDo === "edit") {
+            getPostAuth(
+                postId,
+                user?.email,
+                localStorage.getItem("accessToken")
+            ).then((res) => setContent(res[0]));
+        }
 
         getCategories().then((res) => setCategories(res));
     }, []);
+    useEffect(() => {
+        if (toDo === "create") {
+            setContent({ userId: user?.id });
+        }
+    }, [toDo, user]);
+    useEffect(() => {
+        if (categories) {
+            if (toDo === "create") {
+                setContent((prev) => {
+                    return {
+                        ...prev,
+                        category: categories[0].name,
+                        published: "2023-01-01",
+                    };
+                });
+            }
+        }
+    }, [categories]);
+    useEffect(() => {
+        if (success === true) {
+            setTimeout(() => navigate("/me"), 2000);
+        }
+    }, [success]);
 
-    if (!content) {
+    if (!content && toDo === "edit") {
         return <BigLoading />;
     }
 
-    const handleSaveCorrectedPost = async () => {
-        putPostAuth(
-            content.id,
-            JSON.parse(localStorage.getItem("user")).email,
-            localStorage.getItem("accessToken"),
-            content
-        ).then((res) => {
-            if (res.title === content.title) {
-                setSuccess(true);
-            } else {
-                setError(true);
-            }
-        });
+    const handleSaveCorrectedPost = () => {
+        if (toDo === "edit") {
+            putPostAuth(
+                content.id,
+                user?.email,
+                localStorage.getItem("accessToken"),
+                content
+            ).then((res) => {
+                if (res.title === content.title) {
+                    setSuccess(true);
+                } else {
+                    setError(true);
+                }
+            });
+        } else if (toDo === "create") {
+            postPostAuth(
+                user?.email,
+                localStorage.getItem("accessToken"),
+                content
+            ).then((res) => {
+                if (res.title === content.title) {
+                    setSuccess(true);
+                } else {
+                    setError(true);
+                }
+            });
+        }
     };
 
     try {
@@ -62,7 +105,7 @@ const EditPost = () => {
                             Заголовок статьи
                         </label>
                         <textarea
-                            value={content.title}
+                            value={content?.title || ""}
                             type="text"
                             className="edit__title edit__textarea"
                             id="edit__title"
@@ -81,7 +124,7 @@ const EditPost = () => {
                             Стартовая картинка статьи
                         </label>
                         <input
-                            value={content.thumbnail}
+                            value={content?.thumbnail || ""}
                             type="text"
                             className="edit__thumbnail edit__input"
                             id="edit__thumbnail"
@@ -94,11 +137,13 @@ const EditPost = () => {
                                 })
                             }
                         />
-                        <img
-                            src={content.thumbnail}
-                            alt="thumbnail"
-                            className="edit__thumbnail-img"
-                        />
+                        {content?.thumbnail ? (
+                            <img
+                                src={content.thumbnail}
+                                alt="thumbnail"
+                                className="edit__thumbnail-img"
+                            />
+                        ) : null}
                     </div>
                     <div className="edit__form-block">
                         <label
@@ -108,10 +153,12 @@ const EditPost = () => {
                             Дата публикации
                         </label>
                         <input
-                            value={content.published
-                                .split(".")
-                                .reverse()
-                                .join("-")}
+                            value={
+                                content?.published
+                                    ?.split(".")
+                                    ?.reverse()
+                                    ?.join("-") || ""
+                            }
                             type="date"
                             className="edit__published edit__input"
                             id="edit__published"
@@ -141,7 +188,7 @@ const EditPost = () => {
                             <select
                                 id="edit__categories"
                                 className="edit__categories edit__select"
-                                value={content.category}
+                                value={content?.category}
                                 onChange={(e) =>
                                     setContent((prev) => {
                                         return {
@@ -152,8 +199,8 @@ const EditPost = () => {
                                 }
                             >
                                 {categories.map((cat) => (
-                                    <option key={cat} value={cat}>
-                                        {cat}
+                                    <option key={cat.name} value={cat}>
+                                        {cat.name}
                                     </option>
                                 ))}
                             </select>
@@ -167,7 +214,9 @@ const EditPost = () => {
                             Содержимое поста
                         </label>
                         <textarea
-                            value={content.text.split("\n").join("\n\n")}
+                            value={
+                                content?.text?.split("\n")?.join("\n\n") || ""
+                            }
                             type="text"
                             className="edit__text edit__textarea"
                             id="edit__text"
@@ -192,6 +241,7 @@ const EditPost = () => {
                 <button
                     onClick={handleSaveCorrectedPost}
                     className="edit__save"
+                    disabled={success}
                 >
                     Сохранить данные
                 </button>

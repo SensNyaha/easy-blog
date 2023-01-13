@@ -1,10 +1,7 @@
-import createPort from "./createPort";
-
-export default async function putPostAuth (postId, email, token, body) {
-    let port = await createPort(email);
-    return fetch(`http://localhost:3001/${port}/posts/${postId}`,
+export default async function postPostAuth (email, token, body) {
+    return fetch(`http://localhost:3001/${660}/posts`,
             {   
-                method: 'PUT',
+                method: 'POST',
                 body: JSON.stringify(body),
                 headers:
                 {
