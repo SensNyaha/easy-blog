@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Link } from "react-router-dom";
+import deletePostAuth from "../../services/deletePostAuth";
 import getCategories from "../../services/getCategories";
 import getPostAuth from "../../services/getPostAuth";
 import logout from "../../services/logout";
@@ -96,7 +97,16 @@ const EditPost = ({ toDo }) => {
             });
         }
     };
-
+    const handleDeletePost = () => {
+        deletePostAuth(postId, user.email, localStorage.getItem("accessToken"))
+            .then((res) => {
+                if (typeof res !== "object") {
+                    throw new Error("Bad request");
+                }
+                navigate("/me");
+            })
+            .catch(() => setError(true));
+    };
     const createNewCategory = (e) => {
         const body = { ...addCategory };
         delete body.active;
@@ -347,6 +357,13 @@ const EditPost = ({ toDo }) => {
                     disabled={success}
                 >
                     Сохранить данные
+                </button>
+                <button
+                    onClick={handleDeletePost}
+                    className="edit__delete"
+                    disabled={success}
+                >
+                    Удалить пост
                 </button>
             </div>
         );
