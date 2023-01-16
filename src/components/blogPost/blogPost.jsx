@@ -26,7 +26,7 @@ const BlogPost = () => {
 
     const [loading, setLoading] = useState(false);
     const [wrongId, setWrongId] = useState(false);
-    // const [nextprev, setNextprev] = useState({ prev: null, next: null });
+    const [nextprev, setNextprev] = useState({ prev: null, next: null });
 
     useEffect(() => {
         if (!blogState.categories.length) {
@@ -43,42 +43,36 @@ const BlogPost = () => {
         setLoading(true);
         if (blogState.posts.length === 0) {
             getPosts(blogState.posts.length, blogState.posts.length + 50)
-                .then((res) => {
-                    if (res.length < 50) {
-                        dispatch({ type: "ALL_POSTS_LOADED" });
-                        setWrongId(true);
-                        throw new Error("Post didnt find");
-                    } else {
-                        return res;
-                    }
-                })
                 .then((res) => dispatch({ type: "POSTS_LOADED", payload: res }))
                 .catch((err) => console.log(err.message))
                 .finally(() => setLoading(false));
         }
     }, []);
     useEffect(() => {
-        setLoading(true);
-        const post = blogState.posts.find((post) => post.id === postId);
-        if (post) {
-            setCurrentPost(post);
-            setLoading(false);
-        } else {
-            getPosts(blogState.posts.length, blogState.posts.length + 50)
-                .then((res) => {
-                    if (res.length < 50) {
-                        dispatch({ type: "ALL_POSTS_LOADED" });
-                        setWrongId(true);
-                        throw new Error("Post didnt find");
-                    } else {
-                        return res;
-                    }
-                })
-                .then((res) => dispatch({ type: "POSTS_LOADED", payload: res }))
-                .catch((err) => dispatch({ type: "ALL_POSTS_LOADED" }))
-                .finally(() => setLoading(false));
+        if (blogState.posts.length > 0) {
+            setLoading(true);
+            const post = blogState.posts.find((post) => post.id === postId);
+            if (post) {
+                setCurrentPost(post);
+                setLoading(false);
+            } else {
+                getPosts(blogState.posts.length, blogState.posts.length + 50)
+                    .then((res) => {
+                        if (res.length === 0) {
+                            setWrongId(true);
+                            throw new Error("Post didnt find");
+                        } else {
+                            return res;
+                        }
+                    })
+                    .then((res) =>
+                        dispatch({ type: "POSTS_LOADED", payload: res })
+                    )
+                    .catch((err) => dispatch({ type: "ALL_POSTS_LOADED" }))
+                    .finally(() => setLoading(false));
+            }
         }
-    }, [blogState.posts]);
+    }, [blogState.posts, postId]);
 
     useEffect(() => {
         if (currentPost.category) {
@@ -90,42 +84,39 @@ const BlogPost = () => {
         }
     }, [currentPost.category]);
 
-    ///ЗДЕСЬ СНАЧАЛА ПРОЙДЕМ ПО ТОМУ ЧТО ИМЕЕМ, если не найдем в массиве, подгрузим еще и сохраним сохраненное в blogState, там пошарим и в цикле пойдем, если пост - последний в БД то следующей кнопки не будет, если первый то предыдущий =  главная страница
-    // useEffect(() => {
-    //     getAllPosts().then((res) => {
-    //         if (Array.isArray(res)) {
-    //             let index = res.findLastIndex((elem) => +elem.id === +postId);
-    //             if (index !== -1) {
-    //                 setNextprev({
-    //                     prev: res[index - 1]?.id,
-    //                     next: res[index + 1]?.id,
-    //                 });
-    //             }
-    //         }
-    //     });
-    // }, [postId]);
-    // useEffect(() => {
-    //     let post = blogState.posts.find((post) => post.id === postId);
-    //     if (post) {
-    //         setContent(post);
-    //     } else {
-    //         setLoading(true);
-    //         getAllPosts()
-    //             .then((posts) => {
-    //                 dispatch({ type: "ALL_POSTS_LOADED", payload: posts });
-    //                 return posts;
-    //             })
-    //             .then((posts) => {
-    //                 const post = posts.find((post) => post.id === postId);
-    //                 if (post === undefined) {
-    //                     throw new Error("wrong post");
-    //                 }
-    //                 setContent(post);
-    //             })
-    //             .then(() => setLoading(false))
-    //             .catch(() => setWrongId(true));
-    //     }
-    // }, [blogState, postId]);
+    useEffect(() => {
+        const indexOfPost = blogState.posts.findIndex(
+            (post) => String(post.id) === String(postId)
+        );
+        if (indexOfPost !== -1) {
+            if (indexOfPost !== blogState.posts.length - 1) {
+                setNextprev({
+                    prev: blogState.posts[indexOfPost - 1]?.id,
+                    next: blogState.posts[indexOfPost + 1]?.id,
+                });
+            } else {
+                getPosts(blogState.posts.length, blogState.posts.length + 1)
+                    .then((res) => {
+                        if (res.length === 0) {
+                            setNextprev({
+                                prev: blogState.posts[indexOfPost - 1]?.id,
+                                next: null,
+                            });
+                            return;
+                        }
+                        return res;
+                    })
+                    .then((res) => {
+                        if (res) {
+                            dispatch({
+                                type: "POSTS_LOADED",
+                                payload: res,
+                            });
+                        }
+                    });
+            }
+        }
+    }, [blogState.posts, postId]);
 
     if (wrongId) {
         return (
@@ -177,7 +168,7 @@ const BlogPost = () => {
                 {parseBlogText(currentPost.text)}
             </div>
 
-            {/* <div className="blog-post__links">
+            <div className="blog-post__links">
                 {nextprev.prev ? (
                     <Link
                         className="blog-post__link"
@@ -210,7 +201,7 @@ const BlogPost = () => {
                         </svg>
                     </Link>
                 ) : null}
-            </div> */}
+            </div>
         </div>
     );
 };

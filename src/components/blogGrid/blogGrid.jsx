@@ -215,15 +215,13 @@ const BlogGrid = () => {
             if (
                 blogState.posts.length >
                 blogGridState.showingPosts.length +
-                    blogGridState.countOfListingPosts
+                    +blogGridState.countOfListingPosts
             ) {
                 dispatchGrid({
-                    type: "SHOW_POSTS",
-                    payload: blogState.posts.slice(
-                        blogGridState.showingPosts.length,
+                    type: "CHANGE_NEEDS",
+                    payload:
                         blogGridState.showingPosts.length +
-                            blogGridState.countOfListingPosts
-                    ),
+                        +blogGridState.countOfListingPosts,
                 });
             } else {
                 getPosts(
