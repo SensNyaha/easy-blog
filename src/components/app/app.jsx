@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import ScrollToTop from "../scrollWrapper/scrollWrapper";
@@ -12,14 +12,26 @@ import CheckAuth from "../checkAuth/checkAuth";
 import Me from "../me/me";
 import EditPost from "../editPost/editPost";
 import ErrorBoundary from "../errorBoundary/errorBoundary";
+import { BlogContext } from "../../context/context";
 
 const App = () => {
+    const [blogState, dispatch] = useContext(BlogContext);
     const [logged, setLogged] = useState(false);
 
     const onChangeLogged = () => {
         setLogged(localStorage.getItem("accessToken"));
     };
-
+    useEffect(() => {
+        if (localStorage.getItem("accessToken")) {
+            dispatch({
+                type: "LOGIN",
+                payload: {
+                    token: localStorage.getItem("accessToken"),
+                    user: JSON.parse(localStorage.getItem("user")),
+                },
+            });
+        }
+    }, []);
     return (
         <ErrorBoundary>
             <ScrollToTop>

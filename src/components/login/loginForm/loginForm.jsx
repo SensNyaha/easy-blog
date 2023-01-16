@@ -1,15 +1,22 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { BlogContext } from "../../../context/context";
 import LoginError from "../loginError/loginError";
 
 import "./loginForm.scss";
 
 const LoginForm = ({ type, status, handleStatusChange }) => {
+    const [, dispatch] = useContext(BlogContext);
+
     const [errorMsg, setErrorMsg] = useState("");
 
     const handleSuccessAuth = ({
         accessToken,
         user = "Server didnt return",
     }) => {
+        dispatch({
+            type: "LOGIN",
+            payload: { token: accessToken, user: user },
+        });
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("user", JSON.stringify(user));
 
@@ -40,7 +47,6 @@ const LoginForm = ({ type, status, handleStatusChange }) => {
                 } else {
                     handleStatusChange("failed");
                     setErrorMsg(res);
-                    console.log(errorMsg);
                     throw new Error(res);
                 }
             })

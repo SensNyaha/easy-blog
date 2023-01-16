@@ -5,10 +5,9 @@ import "./login.scss";
 import LoginForm from "./loginForm/loginForm";
 
 const Login = () => {
-    const [type, setType] = useState();
-    useEffect(() => {
-        setType("login");
-    }, []);
+    const [type, setType] = useState("login");
+    const [status, setStatus] = useState();
+
     const navigate = useNavigate();
     useEffect(() => {
         if (localStorage.getItem("accessToken")) {
@@ -16,7 +15,6 @@ const Login = () => {
         }
     }, []);
 
-    const [status, setStatus] = useState();
     const handleStatusChange = (status) => {
         setStatus(status);
     };
