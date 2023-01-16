@@ -229,15 +229,10 @@ const BlogGrid = () => {
                 getPosts(
                     blogState.posts.length,
                     blogGridState.showingPosts.length +
-                        blogGridState.countOfListingPosts
+                        +blogGridState.countOfListingPosts
                 )
                     .then((res) => {
-                        if (
-                            res.length <
-                            blogGridState.showingPosts.length +
-                                blogGridState.countOfListingPosts -
-                                blogState.posts.length
-                        ) {
+                        if (res.length < blogGridState.countOfListingPosts) {
                             dispatchGrid({ type: "LIST_ENDED" });
                         }
                         return res;
@@ -258,13 +253,20 @@ const BlogGrid = () => {
             getPosts(
                 blogState.posts.length,
                 blogState.posts.length + +blogGridState.countOfListingPosts
-            ).then((res) => {
-                dispatch({ type: "POSTS_LOADED", payload: res });
-                dispatchGrid({
-                    type: "CHANGE_NEEDS",
-                    payload: blogGridState.showingPosts.length + res.length,
+            )
+                .then((res) => {
+                    if (res.length < blogGridState.countOfListingPosts) {
+                        dispatchGrid({ type: "LIST_ENDED" });
+                    }
+                    return res;
+                })
+                .then((res) => {
+                    dispatch({ type: "POSTS_LOADED", payload: res });
+                    dispatchGrid({
+                        type: "CHANGE_NEEDS",
+                        payload: blogGridState.showingPosts.length + res.length,
+                    });
                 });
-            });
         }
         dispatchGrid({ type: "STOP_LOADING" });
     };
