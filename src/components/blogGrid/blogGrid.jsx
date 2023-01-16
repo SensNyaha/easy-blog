@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import getPosts from "../../services/getPosts";
 import BigLoading from "../bigLoading/bigLoading";
 import BlogCard from "./blogCard/blogCard";
@@ -6,25 +6,25 @@ import SelectCount from "./selectCount/selectCount";
 import LoadMore from "./loadMore/loadMore";
 
 import usePrevious from "../../customHooks/usePrevious";
-import getCategories from "../../services/getCategories";
+// import getCategories from "../../services/getCategories";
 
 import "./blogGrid.scss";
+import { BlogContext } from "../../context/context";
+import logout from "../../services/logout";
 
 const BlogGrid = () => {
-    let [posts, setPosts] = useState([]);
-    let [countOfPosts, setCountOfPosts] = useState("9");
-    const [categories, setCategories] = useState({});
-    let [loading, setLoading] = useState(false);
-    let [error, setError] = useState(false);
-    let [ended, setEnded] = useState(false);
+    const [blogState, dispatch] = useContext(BlogContext);
 
-    let previousCount = usePrevious(countOfPosts);
+    let [loading, setLoading] = useState(false);
+    // let [ended, setEnded] = useState(false);
+
+    let previousCount = usePrevious(blogState.countOfListingPosts);
 
     ///Логика расположения больших элементов на сетке
     let [bigPositions, setBigPositions] = useState();
     useEffect(() => {
         let protoBigPositions = [];
-        for (let i = 0; i < posts.length; i = i + 11) {
+        for (let i = 0; i < blogState.posts.length; i = i + 11) {
             if (i === 0) {
                 protoBigPositions.push({ col: "1/3", row: "1/3" });
             } else {
@@ -52,61 +52,61 @@ const BlogGrid = () => {
             }
         }
         setBigPositions(protoBigPositions);
-    }, [posts]);
+    }, [blogState.posts]);
 
     useEffect(() => {
-        getCategories().then((res) => setCategories(res));
-    }, []);
-
-    useEffect(() => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-    }, []);
-    useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-            getPosts(posts.length, countOfPosts)
-                .then((res) => setPosts(res))
-                .then(() => setLoading(false))
-                .catch((err) => console.log(err));
-        }, 1000);
+        logout();
     }, []);
 
     useEffect(() => {
         if (previousCount) {
-            if (+countOfPosts > previousCount && posts.length < countOfPosts) {
+            if (
+                +blogState.countOfListingPosts > previousCount &&
+                blogState.posts.length < blogState.countOfListingPosts
+            ) {
                 setLoading(true);
                 setTimeout(() => {
-                    getPosts(posts.length, countOfPosts)
+                    getPosts(
+                        blogState.posts.length,
+                        blogState.countOfListingPosts
+                    )
                         .then((res) => {
-                            if (res.length + posts.length < countOfPosts) {
-                                setEnded(true);
+                            if (
+                                res.length + blogState.posts.length <
+                                blogState.countOfListingPosts
+                            ) {
+                                dispatch({ type: "LISTING_ENDED" });
                             }
                             return res;
                         })
-                        .then((res) => setPosts((prev) => [...prev, ...res]))
+                        .then((res) =>
+                            dispatch({ type: "POSTS_LOADED", payload: res })
+                        )
                         .then(() => setLoading(false))
                         .catch((err) => console.log(err));
                 }, 1000);
             }
         }
-    }, [countOfPosts]);
+    }, [blogState.countOfListingPosts]);
 
     const handleChangeCountPosts = (count) => {
-        setCountOfPosts(count);
+        dispatch({ type: "COUNT_OF_POSTS_CHANGED", payload: count });
     };
 
     const loadMorePosts = () => {
         setLoading(true);
         setTimeout(() => {
-            getPosts(posts.length, posts.length + +countOfPosts)
+            getPosts(
+                blogState.posts.length,
+                blogState.posts.length + +blogState.countOfListingPosts
+            )
                 .then((res) => {
-                    if (res.length < countOfPosts) {
-                        setEnded(true);
+                    if (res.length < blogState.countOfListingPosts) {
+                        dispatch({ type: "LISTING_ENDED" });
                     }
                     return res;
                 })
-                .then((res) => setPosts((prev) => [...prev, ...res]))
+                .then((res) => dispatch({ type: "POSTS_LOADED", payload: res }))
                 .then(() => setLoading(false))
                 .catch((err) => console.log(err));
         }, 1000);
@@ -114,19 +114,19 @@ const BlogGrid = () => {
 
     return (
         <>
-            {loading ? <BigLoading /> : null}
+            {blogState.posts.length === 0 || loading ? <BigLoading /> : null}
             <SelectCount
-                count={countOfPosts}
+                count={blogState.countOfListingPosts}
                 onChange={handleChangeCountPosts}
             />
             <div className="blog-grid">
-                {[...posts].map((post, i) => {
+                {[...blogState.posts].map((post, i) => {
                     return (
                         <BlogCard
                             key={post.id}
                             {...post}
                             categoryStyles={{
-                                ...categories.find(
+                                ...blogState.categories.find(
                                     (cat) => cat.name === post.category
                                 ),
                             }}
@@ -141,7 +141,7 @@ const BlogGrid = () => {
                     );
                 })}
             </div>
-            {posts.length && !ended ? (
+            {blogState.posts.length && !blogState.listingOfPostsEnded ? (
                 <LoadMore onClick={loadMorePosts} />
             ) : null}
         </>

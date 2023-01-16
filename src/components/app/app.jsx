@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import ScrollToTop from "../scrollWrapper/scrollWrapper";
@@ -12,6 +12,9 @@ import CheckAuth from "../checkAuth/checkAuth";
 import Me from "../me/me";
 import EditPost from "../editPost/editPost";
 import ErrorBoundary from "../errorBoundary/errorBoundary";
+import { BlogContext } from "../../context/context";
+import getCategories from "../../services/getCategories";
+import getPosts from "../../services/getPosts";
 
 const App = () => {
     const [logged, setLogged] = useState(false);
@@ -19,6 +22,17 @@ const App = () => {
     const onChangeLogged = () => {
         setLogged(localStorage.getItem("accessToken"));
     };
+
+    const [blogState, dispatch] = useContext(BlogContext);
+
+    useEffect(() => {
+        getPosts(0, blogState.countOfListingPosts).then((res) =>
+            dispatch({ type: "POSTS_LOADED", payload: res })
+        );
+        getCategories().then((res) =>
+            dispatch({ type: "CATEGORIES_LOADED", payload: res })
+        );
+    }, []);
 
     return (
         <ErrorBoundary>
