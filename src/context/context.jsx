@@ -2,38 +2,47 @@ import { createContext, useReducer } from "react";
 
 const initialState = {
     posts: [],
+    allPosts: false,
     categories: [],
     logged: false,
     accessToken: null,
     userInfo: {},
-    countOfListingPosts: "9",
-    listingOfPostsEnded: false,
 };
 
 const reducer = (state, action) => {
     switch (action.type) {
+        case "LOGIN":
+            return {
+                ...state,
+                accessToken: action.payload.token,
+                userInfo: action.payload.user,
+            };
+        case "LOGOUT":
+            return {
+                ...state,
+                accessToken: null,
+                userInfo: {},
+            };
         case "POSTS_LOADED":
+            if (state.allPosts) {
+                return {
+                    state,
+                };
+            }
             return {
                 ...state,
                 posts: [...state.posts, ...action.payload],
+            };
+        case "ALL_POSTS_LOADED":
+            return {
+                ...state,
+                allPosts: true,
             };
         case "CATEGORIES_LOADED":
             return {
                 ...state,
                 categories: action.payload,
             };
-        case "COUNT_OF_POSTS_CHANGED": {
-            return {
-                ...state,
-                countOfListingPosts: action.payload,
-            };
-        }
-        case "LISTING_ENDED": {
-            return {
-                ...state,
-                listingOfPostsEnded: true,
-            };
-        }
         default:
             return state;
     }

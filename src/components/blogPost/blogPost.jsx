@@ -1,168 +1,183 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
-import getPost from "../../services/getPost";
-import getAllPosts from "../../services/getAllPosts";
 import parseBlogText from "../../services/parseBlogText";
 
 import BigLoading from "../bigLoading/bigLoading";
 
 import "./blogPost.scss";
 import { Link } from "react-router-dom";
+import { BlogContext } from "../../context/context";
+import logout from "../../services/logout";
+import getPosts from "../../services/getPosts";
+import getCategories from "../../services/getCategories";
 
 const BlogPost = () => {
+    const [blogState, dispatch] = useContext(BlogContext);
     const { postId } = useParams();
     const navigate = useNavigate();
+
+    const [currentPost, setCurrentPost] = useState({});
+    const [categoryStyles, setCategoryStyles] = useState({});
 
     if (postId === undefined) {
         navigate("/");
     }
 
-    const [loading, setLoading] = useState(true);
-    const [content, setContent] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [wrongId, setWrongId] = useState(false);
-    const [error, setError] = useState(false);
-    const [nextprev, setNextprev] = useState({ prev: null, next: null });
+    // const [nextprev, setNextprev] = useState({ prev: null, next: null });
 
     useEffect(() => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
+        if (!blogState.categories.length) {
+            getCategories().then((res) =>
+                dispatch({ type: "CATEGORIES_LOADED", payload: res })
+            );
+        }
+
+        logout();
+        dispatch({ type: "LOGOUT" });
     }, []);
+
     useEffect(() => {
         setLoading(true);
-        setTimeout(() => {
-            getPost(postId)
+        if (blogState.posts.length === 0) {
+            getPosts(blogState.posts.length, blogState.posts.length + 50)
                 .then((res) => {
-                    if (res.length === 0) {
+                    if (res.length < 50) {
+                        dispatch({ type: "ALL_POSTS_LOADED" });
                         setWrongId(true);
-                        setLoading(false);
-                        throw new Error("Wrong ID");
+                        throw new Error("Post didnt find");
                     } else {
                         return res;
                     }
                 })
-                .then((res) => setContent(res[0]))
-                .then(() => setLoading(false))
-                .catch(() => setError(true));
-        }, 1000);
-    }, [postId]);
+                .then((res) => dispatch({ type: "POSTS_LOADED", payload: res }))
+                .catch((err) => console.log(err.message))
+                .finally(() => setLoading(false));
+        }
+    }, []);
     useEffect(() => {
-        getAllPosts().then((res) => {
-            if (Array.isArray(res)) {
-                let index = res.findLastIndex((elem) => +elem.id === +postId);
-                if (index !== -1) {
-                    setNextprev({
-                        prev: res[index - 1]?.id,
-                        next: res[index + 1]?.id,
-                    });
-                }
-            }
-        });
-    }, [postId]);
-
-    if (error) {
-        if (wrongId) {
-            return (
-                <div className="blog-post">
-                    <h1
-                        className="blog-post__error"
-                        style={{ textAlign: "center" }}
-                    >
-                        Несуществующий пост
-                    </h1>
-                    <Link
-                        style={{ display: "block", margin: "30px auto" }}
-                        className="blog-post__link"
-                        to="/"
-                    >
-                        На главную
-                    </Link>
-                </div>
-            );
+        setLoading(true);
+        const post = blogState.posts.find((post) => post.id === postId);
+        if (post) {
+            setCurrentPost(post);
+            setLoading(false);
         } else {
-            return (
-                <div className="blog-post">
-                    <h1
-                        className="blog-post__error"
-                        style={{ textAlign: "center" }}
-                    >
-                        Произошла ошибка при получении данных с сервера
-                    </h1>
-                    <Link
-                        style={{ display: "block", margin: "30px auto" }}
-                        className="blog-post__link"
-                        to="/"
-                    >
-                        На главную
-                    </Link>
-                </div>
+            getPosts(blogState.posts.length, blogState.posts.length + 50)
+                .then((res) => {
+                    if (res.length < 50) {
+                        dispatch({ type: "ALL_POSTS_LOADED" });
+                        setWrongId(true);
+                        throw new Error("Post didnt find");
+                    } else {
+                        return res;
+                    }
+                })
+                .then((res) => dispatch({ type: "POSTS_LOADED", payload: res }))
+                .catch((err) => dispatch({ type: "ALL_POSTS_LOADED" }))
+                .finally(() => setLoading(false));
+        }
+    }, [blogState.posts]);
+
+    useEffect(() => {
+        if (currentPost.category) {
+            const catStyle = blogState.categories.find(
+                (cat) => cat.name === currentPost.category
             );
-        }
-    }
 
-    if (loading) {
+            setCategoryStyles(catStyle);
+        }
+    }, [currentPost.category]);
+
+    ///ЗДЕСЬ СНАЧАЛА ПРОЙДЕМ ПО ТОМУ ЧТО ИМЕЕМ, если не найдем в массиве, подгрузим еще и сохраним сохраненное в blogState, там пошарим и в цикле пойдем, если пост - последний в БД то следующей кнопки не будет, если первый то предыдущий =  главная страница
+    // useEffect(() => {
+    //     getAllPosts().then((res) => {
+    //         if (Array.isArray(res)) {
+    //             let index = res.findLastIndex((elem) => +elem.id === +postId);
+    //             if (index !== -1) {
+    //                 setNextprev({
+    //                     prev: res[index - 1]?.id,
+    //                     next: res[index + 1]?.id,
+    //                 });
+    //             }
+    //         }
+    //     });
+    // }, [postId]);
+    // useEffect(() => {
+    //     let post = blogState.posts.find((post) => post.id === postId);
+    //     if (post) {
+    //         setContent(post);
+    //     } else {
+    //         setLoading(true);
+    //         getAllPosts()
+    //             .then((posts) => {
+    //                 dispatch({ type: "ALL_POSTS_LOADED", payload: posts });
+    //                 return posts;
+    //             })
+    //             .then((posts) => {
+    //                 const post = posts.find((post) => post.id === postId);
+    //                 if (post === undefined) {
+    //                     throw new Error("wrong post");
+    //                 }
+    //                 setContent(post);
+    //             })
+    //             .then(() => setLoading(false))
+    //             .catch(() => setWrongId(true));
+    //     }
+    // }, [blogState, postId]);
+
+    if (wrongId) {
+        return (
+            <div className="blog-post">
+                <h1
+                    className="blog-post__error"
+                    style={{ textAlign: "center" }}
+                >
+                    Несуществующий пост
+                </h1>
+                <Link
+                    style={{ display: "block", margin: "30px auto" }}
+                    className="blog-post__link"
+                    to="/"
+                >
+                    На главную
+                </Link>
+            </div>
+        );
+    }
+    if (loading || !currentPost.text) {
         return <BigLoading />;
-    }
-
-    let categoryClass = `blog-post__category `;
-    switch (content.category) {
-        case "Внеземное": {
-            categoryClass += "blog-post__category--cosmo";
-            break;
-        }
-        case "Что было раньше": {
-            categoryClass += "blog-post__category--before";
-            break;
-        }
-        case "Кибервсё": {
-            categoryClass += "blog-post__category--cyber";
-            break;
-        }
-        case "Космическая гонка": {
-            categoryClass += "blog-post__category--cosmo";
-            break;
-        }
-        case "Устройство человека": {
-            categoryClass += "blog-post__category--human";
-            break;
-        }
-        case "Стиль жизни": {
-            categoryClass += "blog-post__category--human";
-            break;
-        }
-        case "Будущее уже здесь": {
-            categoryClass += "blog-post__category--inno";
-            break;
-        }
-        case "Физика всего": {
-            categoryClass += "blog-post__category--inno";
-            break;
-        }
-        default: {
-            categoryClass += "blog-post__category--undef";
-        }
     }
 
     return (
         <div className="blog-post">
             <div className="blog-post__intro">
                 <div className="blog-post__info">
-                    <h3 className="blog-post__title">{content.title}</h3>
-                    <div className={categoryClass}>{content.category}</div>
+                    <h3 className="blog-post__title">{currentPost.title}</h3>
+                    <div
+                        style={{
+                            background: categoryStyles.background,
+                            color: categoryStyles.color,
+                        }}
+                        className="blog-post__category"
+                    >
+                        {currentPost.category}
+                    </div>
                     <div className="blog-post__published">
-                        {content.published}
+                        {currentPost.published}
                     </div>
                 </div>
                 <div className="blog-post__thumbnail">
-                    <img src={content.thumbnail} alt="thumbnail" />
+                    <img src={currentPost.thumbnail} alt="thumbnail" />
                 </div>
             </div>
 
             <div className="blog-post__content">
-                {parseBlogText(content.text)}
+                {parseBlogText(currentPost.text)}
             </div>
 
-            <div className="blog-post__links">
+            {/* <div className="blog-post__links">
                 {nextprev.prev ? (
                     <Link
                         className="blog-post__link"
@@ -195,7 +210,7 @@ const BlogPost = () => {
                         </svg>
                     </Link>
                 ) : null}
-            </div>
+            </div> */}
         </div>
     );
 };
