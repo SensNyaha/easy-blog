@@ -9,6 +9,7 @@ import postCategory from "../../services/postCategory";
 import postPostAuth from "../../services/postPostAuth";
 import putPostAuth from "../../services/putPostAuth";
 import BigLoading from "../bigLoading/bigLoading";
+import EditHint from "./editHint/editHint";
 
 import "./editPost.scss";
 
@@ -326,6 +327,7 @@ const EditPost = ({ toDo }) => {
                         >
                             Содержимое поста
                         </label>
+                        <EditHint />
                         <textarea
                             value={
                                 content?.text?.split("\n")?.join("\n\n") || ""
@@ -346,6 +348,7 @@ const EditPost = ({ toDo }) => {
                         />
                     </div>
                 </div>
+
                 {success ? (
                     <div className="edit__success">Пост успешно изменен!</div>
                 ) : error ? (
