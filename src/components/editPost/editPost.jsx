@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Link } from "react-router-dom";
+import { BlogContext } from "../../context/context";
 import deletePostAuth from "../../services/deletePostAuth";
 import getCategories from "../../services/getCategories";
 import getPostAuth from "../../services/getPostAuth";
@@ -13,114 +14,184 @@ import EditHint from "./editHint/editHint";
 
 import "./editPost.scss";
 
-const EditPost = ({ toDo }) => {
-    const { postId } = useParams();
-    const navigate = useNavigate();
-
-    const [content, setContent] = useState(null);
-    const [user, setUser] = useState(null);
-    const [categories, setCategories] = useState(null);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState(false);
-    const [addCategory, setAddCategory] = useState({
+const initialState = {
+    content: {},
+    user: {},
+    categories: [],
+    success: false,
+    error: false,
+    addCategoryMenuState: {
         active: false,
         name: "",
         background: "#fff",
         color: "#000",
-    });
+    },
+};
+const reducer = (state, action) => {
+    switch (action.type) {
+        case "CONTENT_SET":
+            return {
+                ...state,
+                content: { ...state.content, ...action.payload },
+            };
+        case "CATEGORIES_SET":
+            return {
+                ...state,
+                categories: action.payload,
+            };
+        case "USER_SET": {
+            return {
+                ...state,
+                user: { ...action.payload },
+            };
+        }
+        case "SUCCESS_EDIT": {
+            return {
+                ...state,
+                success: true,
+            };
+        }
+        case "ERROR_EDIT": {
+            return {
+                ...state,
+                error: true,
+            };
+        }
+        case "CHANGE_CATEGORY_ADDING_MENU":
+            return {
+                ...state,
+                addCategoryMenuState: {
+                    ...state.addCategoryMenuState,
+                    ...action.payload,
+                },
+            };
+
+        default:
+            return state;
+    }
+};
+
+const EditPost = ({ toDo }) => {
+    const [editState, dispatchEdit] = useReducer(reducer, initialState);
+    const [, dispatch] = useContext(BlogContext);
+
+    const { postId } = useParams();
+    const navigate = useNavigate();
+
+    // const [addCategory, setAddCategory] = useState({
+    //     active: false,
+    //     name: "",
+    //     background: "#fff",
+    //     color: "#000",
+    // });
 
     useEffect(() => {
-        setUser(JSON.parse(localStorage.getItem("user")));
+        dispatchEdit({
+            type: "USER_SET",
+            payload: JSON.parse(localStorage.getItem("user")),
+        });
 
         if (toDo === "edit") {
             getPostAuth(
                 postId,
-                user?.email,
+                editState.user?.email,
                 localStorage.getItem("accessToken")
-            ).then((res) => setContent(res[0]));
+            ).then((res) =>
+                dispatchEdit({ type: "CONTENT_SET", payload: res[0] })
+            );
         }
 
-        getCategories().then((res) => setCategories(res));
+        getCategories().then((res) =>
+            dispatchEdit({ type: "CATEGORIES_SET", payload: res })
+        );
     }, []);
     useEffect(() => {
         if (toDo === "create") {
-            setContent({ userId: user?.id });
+            dispatchEdit({
+                type: "CONTENT_SET",
+                payload: { userId: editState.user?.id },
+            });
         }
-    }, [toDo, user]);
+    }, [toDo, editState.user]);
     useEffect(() => {
-        if (categories) {
+        if (editState.categories) {
             if (toDo === "create") {
-                setContent((prev) => {
-                    return {
-                        ...prev,
-                        category: categories[0].name,
+                dispatchEdit({
+                    type: "CONTENT_SET",
+                    payload: {
+                        category: editState.categories[0]?.name,
                         published: "2023-01-01",
-                    };
+                    },
                 });
             }
         }
-    }, [categories]);
+    }, [editState.categories]);
     useEffect(() => {
-        if (success === true) {
+        if (editState.success === true) {
             setTimeout(() => navigate("/me"), 2000);
         }
-    }, [success]);
+    }, [editState.success]);
 
-    if (!content && toDo === "edit") {
+    if (!editState.content && toDo === "edit") {
         return <BigLoading />;
     }
 
     const handleSaveCorrectedPost = () => {
         if (toDo === "edit") {
             putPostAuth(
-                content.id,
-                user?.email,
+                editState.content.id,
+                editState.user?.email,
                 localStorage.getItem("accessToken"),
-                content
+                editState.content
             ).then((res) => {
-                if (res.title === content.title) {
-                    setSuccess(true);
+                if (res.title === editState.content.title) {
+                    dispatchEdit({ type: "SUCCESS_EDIT" });
                 } else {
-                    setError(true);
+                    dispatchEdit({ type: "ERROR_EDIT" });
                 }
             });
         } else if (toDo === "create") {
             postPostAuth(
-                user?.email,
+                editState.user?.email,
                 localStorage.getItem("accessToken"),
-                content
+                editState.content
             ).then((res) => {
-                if (res.title === content.title) {
-                    setSuccess(true);
+                if (res.title === editState.content.title) {
+                    dispatchEdit({ type: "SUCCESS_EDIT" });
                 } else {
-                    setError(true);
+                    dispatchEdit({ type: "ERROR_EDIT" });
                 }
             });
         }
     };
     const handleDeletePost = () => {
-        deletePostAuth(postId, user.email, localStorage.getItem("accessToken"))
+        deletePostAuth(
+            postId,
+            editState.user.email,
+            localStorage.getItem("accessToken")
+        )
             .then((res) => {
                 if (typeof res !== "object") {
                     throw new Error("Bad request");
                 }
                 navigate("/me");
             })
-            .catch(() => setError(true));
+            .catch(() => dispatchEdit({ type: "ERROR_EDIT" }));
     };
     const createNewCategory = (e) => {
-        const body = { ...addCategory };
+        const body = { ...editState.addCategoryMenuState };
         delete body.active;
         postCategory(body)
             .then((res) => {
                 if (res.name) {
-                    setAddCategory({
-                        active: false,
-                        name: "",
-                        background: "#fff",
-                        color: "#000",
+                    dispatchEdit({
+                        type: "CHANGE_CATEGORY_ADDING_MENU",
+                        payload: initialState,
                     });
-                    getCategories().then((res) => setCategories(res));
+                    getCategories().then((res) => {
+                        dispatchEdit({ type: "CATEGORIES_SET", payload: res });
+                        dispatch({ type: "CATEGORIES_LOADED", payload: res });
+                    });
                 } else {
                     e.target.parentElement.append(
                         "Что-то пошло не так. Попробуйте позже."
@@ -145,13 +216,14 @@ const EditPost = ({ toDo }) => {
                             Заголовок статьи
                         </label>
                         <textarea
-                            value={content?.title || ""}
+                            value={editState.content?.title || ""}
                             type="text"
                             className="edit__title edit__textarea"
                             id="edit__title"
                             onChange={(e) =>
-                                setContent((prev) => {
-                                    return { ...prev, title: e.target.value };
+                                dispatchEdit({
+                                    type: "CONTENT_SET",
+                                    payload: { title: e.target.value },
                                 })
                             }
                         />
@@ -164,22 +236,20 @@ const EditPost = ({ toDo }) => {
                             Стартовая картинка статьи
                         </label>
                         <input
-                            value={content?.thumbnail || ""}
+                            value={editState.content?.thumbnail || ""}
                             type="text"
                             className="edit__thumbnail edit__input"
                             id="edit__thumbnail"
                             onChange={(e) =>
-                                setContent((prev) => {
-                                    return {
-                                        ...prev,
-                                        thumbnail: e.target.value,
-                                    };
+                                dispatchEdit({
+                                    type: "CONTENT_SET",
+                                    payload: { thumbnail: e.target.value },
                                 })
                             }
                         />
-                        {content?.thumbnail ? (
+                        {editState.content?.thumbnail ? (
                             <img
-                                src={content.thumbnail}
+                                src={editState.content.thumbnail}
                                 alt="thumbnail"
                                 className="edit__thumbnail-img"
                             />
@@ -194,7 +264,7 @@ const EditPost = ({ toDo }) => {
                         </label>
                         <input
                             value={
-                                content?.published
+                                editState.content?.published
                                     ?.split(".")
                                     ?.reverse()
                                     ?.join("-") || ""
@@ -203,14 +273,14 @@ const EditPost = ({ toDo }) => {
                             className="edit__published edit__input"
                             id="edit__published"
                             onChange={(e) =>
-                                setContent((prev) => {
-                                    return {
-                                        ...prev,
+                                dispatchEdit({
+                                    type: "CONTENT_SET",
+                                    payload: {
                                         published: e.target.value
                                             .split("-")
                                             .reverse()
                                             .join("."),
-                                    };
+                                    },
                                 })
                             }
                         />
@@ -222,23 +292,21 @@ const EditPost = ({ toDo }) => {
                         >
                             Категория поста
                         </label>
-                        {!categories ? (
+                        {!editState.categories ? (
                             "Не удалось загрузить категории для постов. Попробуйте позже"
                         ) : (
                             <select
                                 id="edit__categories"
                                 className="edit__categories edit__select"
-                                value={content?.category}
+                                value={editState.content?.category}
                                 onChange={(e) =>
-                                    setContent((prev) => {
-                                        return {
-                                            ...prev,
-                                            category: e.target.value,
-                                        };
+                                    dispatchEdit({
+                                        type: "CONTENT_SET",
+                                        payload: { category: e.target.value },
                                     })
                                 }
                             >
-                                {categories.map((cat) => (
+                                {editState.categories.map((cat) => (
                                     <option key={cat.name} value={cat.name}>
                                         {cat.name}
                                     </option>
@@ -251,19 +319,25 @@ const EditPost = ({ toDo }) => {
                                     type="checkbox"
                                     className="edit__categories-checkbox"
                                     id="edit__categories-checkbox"
-                                    checked={addCategory.active}
+                                    checked={
+                                        editState.addCategoryMenuState.active
+                                    }
                                     onChange={() => {
-                                        setAddCategory((prev) => ({
-                                            ...prev,
-                                            active: !prev.active,
-                                        }));
+                                        dispatchEdit({
+                                            type: "CHANGE_CATEGORY_ADDING_MENU",
+                                            payload: {
+                                                active: !editState
+                                                    .addCategoryMenuState
+                                                    .active,
+                                            },
+                                        });
                                     }}
                                 />
                                 <label htmlFor="edit__categories-checkbox">
                                     Добавить свою категорию
                                 </label>
                             </div>
-                            {addCategory.active ? (
+                            {editState.addCategoryMenuState.active ? (
                                 <div className="edit__categories-new">
                                     <label htmlFor="edit__categories-name">
                                         Название новой категории
@@ -272,12 +346,16 @@ const EditPost = ({ toDo }) => {
                                         type="text"
                                         className="edit__categories-name"
                                         id="edit__categories-name"
-                                        value={addCategory.name}
+                                        value={
+                                            editState.addCategoryMenuState.name
+                                        }
                                         onChange={(e) => {
-                                            setAddCategory((prev) => ({
-                                                ...prev,
-                                                name: e.target.value,
-                                            }));
+                                            dispatchEdit({
+                                                type: "CHANGE_CATEGORY_ADDING_MENU",
+                                                payload: {
+                                                    name: e.target.value,
+                                                },
+                                            });
                                         }}
                                     />
                                     <label htmlFor="edit__categories-background">
@@ -287,12 +365,17 @@ const EditPost = ({ toDo }) => {
                                         type="color"
                                         className="edit__categories-background"
                                         id="edit__categories-background"
-                                        value={addCategory.background}
+                                        value={
+                                            editState.addCategoryMenuState
+                                                .background
+                                        }
                                         onChange={(e) => {
-                                            setAddCategory((prev) => ({
-                                                ...prev,
-                                                background: e.target.value,
-                                            }));
+                                            dispatchEdit({
+                                                type: "CHANGE_CATEGORY_ADDING_MENU",
+                                                payload: {
+                                                    background: e.target.value,
+                                                },
+                                            });
                                         }}
                                     />
                                     <label htmlFor="edit__categories-color">
@@ -302,12 +385,16 @@ const EditPost = ({ toDo }) => {
                                         type="color"
                                         className="edit__categories-color"
                                         id="edit__categories-color"
-                                        value={addCategory.color}
+                                        value={
+                                            editState.addCategoryMenuState.color
+                                        }
                                         onChange={(e) => {
-                                            setAddCategory((prev) => ({
-                                                ...prev,
-                                                color: e.target.value,
-                                            }));
+                                            dispatchEdit({
+                                                type: "CHANGE_CATEGORY_ADDING_MENU",
+                                                payload: {
+                                                    color: e.target.value,
+                                                },
+                                            });
                                         }}
                                     />
                                     <button
@@ -330,41 +417,43 @@ const EditPost = ({ toDo }) => {
                         <EditHint />
                         <textarea
                             value={
-                                content?.text?.split("\n")?.join("\n\n") || ""
+                                editState.content?.text
+                                    ?.split("\n")
+                                    ?.join("\n\n") || ""
                             }
                             type="text"
                             className="edit__text edit__textarea"
                             id="edit__text"
                             onChange={(e) =>
-                                setContent((prev) => {
-                                    return {
-                                        ...prev,
+                                dispatchEdit({
+                                    type: "CONTENT_SET",
+                                    payload: {
                                         text: e.target.value
                                             .split("\n\n")
                                             .join("\n"),
-                                    };
+                                    },
                                 })
                             }
                         />
                     </div>
                 </div>
 
-                {success ? (
+                {editState.success ? (
                     <div className="edit__success">Пост успешно изменен!</div>
-                ) : error ? (
+                ) : editState.error ? (
                     <div className="edit__error">Что-то пошло не так</div>
                 ) : null}
                 <button
                     onClick={handleSaveCorrectedPost}
                     className="edit__save"
-                    disabled={success}
+                    disabled={editState.success}
                 >
                     Сохранить данные
                 </button>
                 <button
                     onClick={handleDeletePost}
                     className="edit__delete"
-                    disabled={success}
+                    disabled={editState.success}
                 >
                     Удалить пост
                 </button>

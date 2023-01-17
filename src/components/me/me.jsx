@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BlogContext } from "../../context/context";
 import { fetchAdminEmail } from "../../services/createPort";
 import getPostsAuth from "../../services/getPostsAuth";
+import logout from "../../services/logout";
 
 import "./me.scss";
 import MeGrid from "./meGrid/meGrid";
@@ -70,22 +71,29 @@ const Me = () => {
         });
     };
 
-    return (
-        <div className="me">
-            <h2 className="me__title">Привет, {user.email}, дорогой друг</h2>
-            <Link to="create" className="me__create">
-                Создать статью
-            </Link>
-            <MeGrid content={content} contentEnded={contentEnded} />
-            <button
-                style={{ display: !contentEnded ? "block" : "none" }}
-                onClick={handleLoadAllPosts}
-                className="me__more"
-            >
-                Дозагрузить все посты
-            </button>
-        </div>
-    );
+    try {
+        return (
+            <div className="me">
+                <h2 className="me__title">
+                    Привет, {user.email}, дорогой друг
+                </h2>
+                <Link to="create" className="me__create">
+                    Создать статью
+                </Link>
+                <MeGrid content={content} contentEnded={contentEnded} />
+                <button
+                    style={{ display: !contentEnded ? "block" : "none" }}
+                    onClick={handleLoadAllPosts}
+                    className="me__more"
+                >
+                    Дозагрузить все посты
+                </button>
+            </div>
+        );
+    } catch {
+        logout();
+        navigate("/login");
+    }
 };
 
 export default Me;
