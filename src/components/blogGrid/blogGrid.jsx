@@ -58,7 +58,7 @@ const reducer = (state, action) => {
 };
 
 const BlogGrid = () => {
-    const [blogState, dispatch] = useContext(BlogContext);
+    const [{ posts, categories }, dispatch] = useContext(BlogContext);
     const [blogGridState, dispatchGrid] = useReducer(reducer, intitialState);
 
     const {
@@ -111,7 +111,7 @@ const BlogGrid = () => {
     }, []);
     useEffect(() => {
         dispatchGrid({ type: "START_LOADING" });
-        if (blogState.posts.length === 0) {
+        if (posts.length === 0) {
             getPosts(0, countOfListingPosts).then((res) => {
                 dispatch({ type: "POSTS_LOADED", payload: res });
                 dispatchGrid({
@@ -119,24 +119,22 @@ const BlogGrid = () => {
                     payload: showingPosts.length + res.length,
                 });
             });
-        } else if (blogState.posts.length >= countOfListingPosts) {
+        } else if (posts.length >= countOfListingPosts) {
             dispatchGrid({
                 type: "CHANGE_NEEDS",
                 payload: countOfListingPosts,
             });
         } else {
-            getPosts(blogState.posts.length, countOfListingPosts).then(
-                (res) => {
-                    dispatch({ type: "POSTS_LOADED", payload: res });
-                    dispatchGrid({
-                        type: "CHANGE_NEEDS",
-                        payload: showingPosts.length + res.length,
-                    });
-                }
-            );
+            getPosts(posts.length, countOfListingPosts).then((res) => {
+                dispatch({ type: "POSTS_LOADED", payload: res });
+                dispatchGrid({
+                    type: "CHANGE_NEEDS",
+                    payload: showingPosts.length + res.length,
+                });
+            });
         }
 
-        if (blogState.posts.length === 0) {
+        if (posts.length === 0) {
             getCategories().then((res) =>
                 dispatch({ type: "CATEGORIES_LOADED", payload: res })
             );
@@ -150,7 +148,7 @@ const BlogGrid = () => {
     useEffect(() => {
         dispatchGrid({
             type: "SHOW_POSTS",
-            payload: blogState.posts.slice(0, neededPostsToShow),
+            payload: posts.slice(0, neededPostsToShow),
         });
     }, [neededPostsToShow]);
     useEffect(() => {
@@ -160,9 +158,9 @@ const BlogGrid = () => {
                 showingPosts.length < +countOfListingPosts
             ) {
                 dispatchGrid({ type: "START_LOADING" });
-                if (blogState.posts.length > showingPosts.length) {
+                if (posts.length > showingPosts.length) {
                     if (
-                        blogState.posts.length >
+                        posts.length >
                         showingPosts.length + +countOfListingPosts
                     ) {
                         dispatchGrid({
@@ -184,15 +182,13 @@ const BlogGrid = () => {
                         );
                     }
                 } else {
-                    getPosts(blogState.posts.length, countOfListingPosts).then(
-                        (res) => {
-                            dispatch({ type: "POSTS_LOADED", payload: res });
-                            dispatchGrid({
-                                type: "CHANGE_NEEDS",
-                                payload: showingPosts.length + res.length,
-                            });
-                        }
-                    );
+                    getPosts(posts.length, countOfListingPosts).then((res) => {
+                        dispatch({ type: "POSTS_LOADED", payload: res });
+                        dispatchGrid({
+                            type: "CHANGE_NEEDS",
+                            payload: showingPosts.length + res.length,
+                        });
+                    });
                 }
                 dispatchGrid({ type: "STOP_LOADING" });
             }
@@ -205,18 +201,15 @@ const BlogGrid = () => {
 
     const loadMorePosts = () => {
         dispatchGrid({ type: "START_LOADING" });
-        if (blogState.posts.length > showingPosts.length) {
-            if (
-                blogState.posts.length >
-                showingPosts.length + +countOfListingPosts
-            ) {
+        if (posts.length > showingPosts.length) {
+            if (posts.length > showingPosts.length + +countOfListingPosts) {
                 dispatchGrid({
                     type: "CHANGE_NEEDS",
                     payload: showingPosts.length + +countOfListingPosts,
                 });
             } else {
                 getPosts(
-                    blogState.posts.length,
+                    posts.length,
                     showingPosts.length + +countOfListingPosts
                 )
                     .then((res) => {
@@ -237,10 +230,7 @@ const BlogGrid = () => {
                     });
             }
         } else {
-            getPosts(
-                blogState.posts.length,
-                blogState.posts.length + +countOfListingPosts
-            )
+            getPosts(posts.length, posts.length + +countOfListingPosts)
                 .then((res) => {
                     if (res.length < +countOfListingPosts) {
                         dispatchGrid({ type: "LIST_ENDED" });
@@ -274,7 +264,7 @@ const BlogGrid = () => {
                                 key={post.id}
                                 {...post}
                                 categoryStyles={{
-                                    ...blogState.categories.find(
+                                    ...categories.find(
                                         (cat) => cat.name === post.category
                                     ),
                                 }}

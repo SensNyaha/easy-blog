@@ -148,8 +148,8 @@ const BlogPost = () => {
                     <h3 className="blog-post__title">{currentPost.title}</h3>
                     <div
                         style={{
-                            background: categoryStyles.background,
-                            color: categoryStyles.color,
+                            background: categoryStyles?.background,
+                            color: categoryStyles?.color,
                         }}
                         className="blog-post__category"
                     >
