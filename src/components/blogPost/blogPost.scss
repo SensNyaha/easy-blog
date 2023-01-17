@@ -44,30 +44,8 @@
         padding: 5px 10px;
         border-radius: 5px;
 
-        &--cosmo {
-            background-color: rgb(72, 34, 176);
-            color: #fff
-        }
-        &--before {
-            background-color: rgb(198, 255, 42);
-            color: rgb(0, 0, 0)
-        }
-        &--cyber {
-            background-color: rgb(255, 0, 0);
-            color: rgb(255, 255, 255)
-        }
-        &--human {
-            background-color: rgb(107, 255, 104);
-            color: rgb(0, 0, 0)
-        }
-        &--inno {
-            background-color: rgb(255, 0, 212);
-            color: rgb(255, 255, 255)
-        }
-        &--undef {
-            background-color: rgb(255, 255, 255);
-            color: rgb(0, 0, 0)
-        }
+        background-color: rgb(255, 255, 255);
+        color: rgb(0, 0, 0)
     }
     &__published {
         align-self: flex-end;
