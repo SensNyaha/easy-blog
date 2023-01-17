@@ -8,7 +8,7 @@ import "./me.scss";
 import MeGrid from "./meGrid/meGrid";
 
 const Me = () => {
-    const [blogState, dispatch] = useContext(BlogContext);
+    const [blogState] = useContext(BlogContext);
     const navigate = useNavigate();
 
     const [user, setUser] = useState({});
@@ -22,25 +22,40 @@ const Me = () => {
         setUser(JSON.parse(localStorage.getItem("user")));
     }, []);
     useEffect(() => {
-        if (blogState.posts.length === 0) {
-            const user = JSON.parse(localStorage.getItem("user"));
-            getPostsAuth(
-                user.email,
-                localStorage.getItem("accessToken"),
-                user.id
-            ).then(setContent);
-        } else {
-            fetchAdminEmail().then((adminEmail) => {
-                if (adminEmail === user.email) {
-                    setContent(blogState.posts);
-                } else {
-                    setContent(
-                        blogState.posts.filter(
+        if (user.email) {
+            if (blogState.posts.length === 0) {
+                const user = JSON.parse(localStorage.getItem("user"));
+                getPostsAuth(
+                    user.email,
+                    localStorage.getItem("accessToken"),
+                    user.id
+                ).then(setContent);
+            } else {
+                fetchAdminEmail().then((adminEmail) => {
+                    if (adminEmail === user.email) {
+                        setContent(blogState.posts);
+                    } else {
+                        const filtered = blogState.posts.filter(
                             (post) => post.userId === user.id
-                        )
-                    );
-                }
-            });
+                        );
+                        if (filtered.length) {
+                            setContent(filtered);
+                        } else {
+                            const user = JSON.parse(
+                                localStorage.getItem("user")
+                            );
+                            getPostsAuth(
+                                user.email,
+                                localStorage.getItem("accessToken"),
+                                user.id
+                            ).then((res) => {
+                                setContent(res);
+                                setContentEnded(true);
+                            });
+                        }
+                    }
+                });
+            }
         }
     }, [user]);
 
