@@ -61,13 +61,21 @@ const BlogGrid = () => {
     const [blogState, dispatch] = useContext(BlogContext);
     const [blogGridState, dispatchGrid] = useReducer(reducer, intitialState);
 
+    const {
+        loading,
+        showingPosts,
+        countOfListingPosts,
+        neededPostsToShow,
+        listingOfPostsEnded,
+    } = blogGridState;
+
     const previousCount = usePrevious(blogGridState.countOfListingPosts);
 
     ///Логика расположения больших элементов на сетке
     let [bigPositions, setBigPositions] = useState();
     useEffect(() => {
         let protoBigPositions = [];
-        for (let i = 0; i < blogGridState.showingPosts.length; i = i + 9) {
+        for (let i = 0; i < showingPosts.length; i = i + 9) {
             if (i === 0) {
                 protoBigPositions.push({ col: "1/3", row: "1/3" });
             } else {
@@ -93,42 +101,39 @@ const BlogGrid = () => {
             }
         }
         setBigPositions(protoBigPositions);
-    }, [blogGridState.showingPosts]);
+    }, [showingPosts]);
 
     useEffect(() => {
         dispatchGrid({
             type: "CHANGE_NEEDS",
-            payload: blogGridState.countOfListingPosts,
+            payload: countOfListingPosts,
         });
     }, []);
     useEffect(() => {
         dispatchGrid({ type: "START_LOADING" });
         if (blogState.posts.length === 0) {
-            getPosts(0, blogGridState.countOfListingPosts).then((res) => {
+            getPosts(0, countOfListingPosts).then((res) => {
                 dispatch({ type: "POSTS_LOADED", payload: res });
                 dispatchGrid({
                     type: "CHANGE_NEEDS",
-                    payload: blogGridState.showingPosts.length + res.length,
+                    payload: showingPosts.length + res.length,
                 });
             });
-        } else if (
-            blogState.posts.length >= blogGridState.countOfListingPosts
-        ) {
+        } else if (blogState.posts.length >= countOfListingPosts) {
             dispatchGrid({
                 type: "CHANGE_NEEDS",
-                payload: blogGridState.countOfListingPosts,
+                payload: countOfListingPosts,
             });
         } else {
-            getPosts(
-                blogState.posts.length,
-                blogGridState.countOfListingPosts
-            ).then((res) => {
-                dispatch({ type: "POSTS_LOADED", payload: res });
-                dispatchGrid({
-                    type: "CHANGE_NEEDS",
-                    payload: blogGridState.showingPosts.length + res.length,
-                });
-            });
+            getPosts(blogState.posts.length, countOfListingPosts).then(
+                (res) => {
+                    dispatch({ type: "POSTS_LOADED", payload: res });
+                    dispatchGrid({
+                        type: "CHANGE_NEEDS",
+                        payload: showingPosts.length + res.length,
+                    });
+                }
+            );
         }
 
         if (blogState.posts.length === 0) {
@@ -145,65 +150,54 @@ const BlogGrid = () => {
     useEffect(() => {
         dispatchGrid({
             type: "SHOW_POSTS",
-            payload: blogState.posts.slice(0, blogGridState.neededPostsToShow),
+            payload: blogState.posts.slice(0, neededPostsToShow),
         });
-    }, [blogGridState.neededPostsToShow]);
+    }, [neededPostsToShow]);
     useEffect(() => {
         if (previousCount) {
             if (
-                +blogGridState.countOfListingPosts > previousCount &&
-                blogGridState.showingPosts.length <
-                    +blogGridState.countOfListingPosts
+                +countOfListingPosts > previousCount &&
+                showingPosts.length < +countOfListingPosts
             ) {
                 dispatchGrid({ type: "START_LOADING" });
-                if (
-                    blogState.posts.length > blogGridState.showingPosts.length
-                ) {
+                if (blogState.posts.length > showingPosts.length) {
                     if (
                         blogState.posts.length >
-                        blogGridState.showingPosts.length +
-                            +blogGridState.countOfListingPosts
+                        showingPosts.length + +countOfListingPosts
                     ) {
                         dispatchGrid({
                             type: "CHANGE_NEEDS",
-                            payload:
-                                blogGridState.showingPosts.length +
-                                +blogGridState.countOfListingPosts,
+                            payload: showingPosts.length + +countOfListingPosts,
                         });
                     } else {
-                        getPosts(
-                            blogGridState.showingPosts.length,
-                            blogGridState.countOfListingPosts
-                        ).then((res) => {
-                            dispatch({
-                                type: "POSTS_LOADED",
-                                payload: res,
-                            });
-                            dispatchGrid({
-                                type: "CHANGE_NEEDS",
-                                payload:
-                                    blogGridState.showingPosts.length +
-                                    res.length,
-                            });
-                        });
+                        getPosts(showingPosts.length, countOfListingPosts).then(
+                            (res) => {
+                                dispatch({
+                                    type: "POSTS_LOADED",
+                                    payload: res,
+                                });
+                                dispatchGrid({
+                                    type: "CHANGE_NEEDS",
+                                    payload: showingPosts.length + res.length,
+                                });
+                            }
+                        );
                     }
                 } else {
-                    getPosts(
-                        blogState.posts.length,
-                        blogGridState.countOfListingPosts
-                    ).then((res) => {
-                        dispatch({ type: "POSTS_LOADED", payload: res });
-                        dispatchGrid({
-                            type: "CHANGE_NEEDS",
-                            payload:
-                                blogGridState.showingPosts.length + res.length,
-                        });
-                    });
+                    getPosts(blogState.posts.length, countOfListingPosts).then(
+                        (res) => {
+                            dispatch({ type: "POSTS_LOADED", payload: res });
+                            dispatchGrid({
+                                type: "CHANGE_NEEDS",
+                                payload: showingPosts.length + res.length,
+                            });
+                        }
+                    );
                 }
                 dispatchGrid({ type: "STOP_LOADING" });
             }
         }
-    }, [blogGridState.countOfListingPosts]);
+    }, [countOfListingPosts]);
 
     const handleChangeCountPosts = (count) => {
         dispatchGrid({ type: "SET_COUNT", payload: count });
@@ -211,26 +205,22 @@ const BlogGrid = () => {
 
     const loadMorePosts = () => {
         dispatchGrid({ type: "START_LOADING" });
-        if (blogState.posts.length > blogGridState.showingPosts.length) {
+        if (blogState.posts.length > showingPosts.length) {
             if (
                 blogState.posts.length >
-                blogGridState.showingPosts.length +
-                    +blogGridState.countOfListingPosts
+                showingPosts.length + +countOfListingPosts
             ) {
                 dispatchGrid({
                     type: "CHANGE_NEEDS",
-                    payload:
-                        blogGridState.showingPosts.length +
-                        +blogGridState.countOfListingPosts,
+                    payload: showingPosts.length + +countOfListingPosts,
                 });
             } else {
                 getPosts(
                     blogState.posts.length,
-                    blogGridState.showingPosts.length +
-                        +blogGridState.countOfListingPosts
+                    showingPosts.length + +countOfListingPosts
                 )
                     .then((res) => {
-                        if (res.length < blogGridState.countOfListingPosts) {
+                        if (res.length < countOfListingPosts) {
                             dispatchGrid({ type: "LIST_ENDED" });
                         }
                         return res;
@@ -242,18 +232,17 @@ const BlogGrid = () => {
                         });
                         dispatchGrid({
                             type: "CHANGE_NEEDS",
-                            payload:
-                                blogGridState.showingPosts.length + res.length,
+                            payload: showingPosts.length + res.length,
                         });
                     });
             }
         } else {
             getPosts(
                 blogState.posts.length,
-                blogState.posts.length + +blogGridState.countOfListingPosts
+                blogState.posts.length + +countOfListingPosts
             )
                 .then((res) => {
-                    if (res.length < blogGridState.countOfListingPosts) {
+                    if (res.length < +countOfListingPosts) {
                         dispatchGrid({ type: "LIST_ENDED" });
                     }
                     return res;
@@ -262,7 +251,7 @@ const BlogGrid = () => {
                     dispatch({ type: "POSTS_LOADED", payload: res });
                     dispatchGrid({
                         type: "CHANGE_NEEDS",
-                        payload: blogGridState.showingPosts.length + res.length,
+                        payload: showingPosts.length + res.length,
                     });
                 });
         }
@@ -272,14 +261,14 @@ const BlogGrid = () => {
     return (
         <>
             <SelectCount
-                count={blogGridState.countOfListingPosts}
+                count={countOfListingPosts}
                 onChange={handleChangeCountPosts}
             />
-            {!blogGridState.showingPosts.length || blogGridState.loading ? (
+            {!showingPosts.length || loading ? (
                 <BigLoading />
             ) : (
                 <div className="blog-grid">
-                    {[...blogGridState.showingPosts].map((post, i) => {
+                    {[...showingPosts].map((post, i) => {
                         return (
                             <BlogCard
                                 key={post.id}
@@ -302,8 +291,7 @@ const BlogGrid = () => {
                 </div>
             )}
 
-            {blogGridState.showingPosts &&
-            !blogGridState.listingOfPostsEnded ? (
+            {showingPosts && !listingOfPostsEnded ? (
                 <LoadMore onClick={loadMorePosts} />
             ) : null}
         </>

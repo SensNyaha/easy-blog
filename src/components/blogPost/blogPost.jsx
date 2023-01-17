@@ -13,7 +13,7 @@ import getPosts from "../../services/getPosts";
 import getCategories from "../../services/getCategories";
 
 const BlogPost = () => {
-    const [blogState, dispatch] = useContext(BlogContext);
+    const [{ categories, posts }, dispatch] = useContext(BlogContext);
     const { postId } = useParams();
     const navigate = useNavigate();
 
@@ -29,7 +29,7 @@ const BlogPost = () => {
     const [nextprev, setNextprev] = useState({ prev: null, next: null });
 
     useEffect(() => {
-        if (!blogState.categories.length) {
+        if (!categories.length) {
             getCategories().then((res) =>
                 dispatch({ type: "CATEGORIES_LOADED", payload: res })
             );
@@ -41,22 +41,22 @@ const BlogPost = () => {
 
     useEffect(() => {
         setLoading(true);
-        if (blogState.posts.length === 0) {
-            getPosts(blogState.posts.length, blogState.posts.length + 50)
+        if (posts.length === 0) {
+            getPosts(posts.length, posts.length + 50)
                 .then((res) => dispatch({ type: "POSTS_LOADED", payload: res }))
                 .catch((err) => console.log(err.message))
                 .finally(() => setLoading(false));
         }
     }, []);
     useEffect(() => {
-        if (blogState.posts.length > 0) {
+        if (posts.length > 0) {
             setLoading(true);
-            const post = blogState.posts.find((post) => post.id === postId);
+            const post = posts.find((post) => post.id === postId);
             if (post) {
                 setCurrentPost(post);
                 setLoading(false);
             } else {
-                getPosts(blogState.posts.length, blogState.posts.length + 50)
+                getPosts(posts.length, posts.length + 50)
                     .then((res) => {
                         if (res.length === 0) {
                             setWrongId(true);
@@ -72,11 +72,11 @@ const BlogPost = () => {
                     .finally(() => setLoading(false));
             }
         }
-    }, [blogState.posts, postId]);
+    }, [posts, postId]);
 
     useEffect(() => {
         if (currentPost.category) {
-            const catStyle = blogState.categories.find(
+            const catStyle = categories.find(
                 (cat) => cat.name === currentPost.category
             );
 
@@ -85,21 +85,21 @@ const BlogPost = () => {
     }, [currentPost.category]);
 
     useEffect(() => {
-        const indexOfPost = blogState.posts.findIndex(
+        const indexOfPost = posts.findIndex(
             (post) => String(post.id) === String(postId)
         );
         if (indexOfPost !== -1) {
-            if (indexOfPost !== blogState.posts.length - 1) {
+            if (indexOfPost !== posts.length - 1) {
                 setNextprev({
-                    prev: blogState.posts[indexOfPost - 1]?.id,
-                    next: blogState.posts[indexOfPost + 1]?.id,
+                    prev: posts[indexOfPost - 1]?.id,
+                    next: posts[indexOfPost + 1]?.id,
                 });
             } else {
-                getPosts(blogState.posts.length, blogState.posts.length + 1)
+                getPosts(posts.length, posts.length + 1)
                     .then((res) => {
                         if (res.length === 0) {
                             setNextprev({
-                                prev: blogState.posts[indexOfPost - 1]?.id,
+                                prev: posts[indexOfPost - 1]?.id,
                                 next: null,
                             });
                             return;
@@ -116,7 +116,7 @@ const BlogPost = () => {
                     });
             }
         }
-    }, [blogState.posts, postId]);
+    }, [posts, postId]);
 
     if (wrongId) {
         return (
