@@ -33,6 +33,11 @@ const reducer = (state, action) => {
                 ...state,
                 posts: [...state.posts, ...action.payload],
             };
+        case "POSTS_RESET":
+            return {
+                ...state,
+                posts: [],
+            };
         case "CATEGORIES_LOADED":
             return {
                 ...state,

@@ -57,6 +57,11 @@ const reducer = (state, action) => {
                 error: true,
             };
         }
+        case "RESET_CATEGORY_ADDING_MENU":
+            return {
+                ...state,
+                addCategoryMenuState: initialState,
+            };
         case "CHANGE_CATEGORY_ADDING_MENU":
             return {
                 ...state,
@@ -156,6 +161,7 @@ const EditPost = ({ toDo }) => {
                 }
             });
         }
+        dispatch({ type: "POSTS_RESET" });
     };
     const handleDeletePost = () => {
         deletePostAuth(
@@ -169,6 +175,7 @@ const EditPost = ({ toDo }) => {
                 }
                 navigate("/me");
             })
+            .then(() => dispatch({ type: "POSTS_RESET" }))
             .catch(() => dispatchEdit({ type: "ERROR_EDIT" }));
     };
     const createNewCategory = (e) => {
@@ -178,8 +185,7 @@ const EditPost = ({ toDo }) => {
             .then((res) => {
                 if (res.name) {
                     dispatchEdit({
-                        type: "CHANGE_CATEGORY_ADDING_MENU",
-                        payload: initialState,
+                        type: "RESET_CATEGORY_ADDING_MENU",
                     });
                     getCategories().then((res) => {
                         dispatchEdit({ type: "CATEGORIES_SET", payload: res });
