@@ -78,13 +78,6 @@ const EditPost = ({ toDo }) => {
     const { postId } = useParams();
     const navigate = useNavigate();
 
-    // const [addCategory, setAddCategory] = useState({
-    //     active: false,
-    //     name: "",
-    //     background: "#fff",
-    //     color: "#000",
-    // });
-
     useEffect(() => {
         dispatchEdit({
             type: "USER_SET",
