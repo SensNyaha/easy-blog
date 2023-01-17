@@ -4,11 +4,11 @@ import BigLoading from "../../bigLoading/bigLoading";
 
 import "./meGrid.scss";
 
-const MeGrid = ({ content }) => {
+const MeGrid = ({ content, contentEnded }) => {
     if (!content) {
         return <BigLoading />;
     }
-    if (content.length === 0) {
+    if (content.length === 0 && contentEnded) {
         return (
             <div className="me__grid">
                 Пока что Вы ничего не запостили. Создайте новый пост прямо
